@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase/firebase';
 import Dashboard from './pages/DashBoard';
 import AuthPage from './pages/AuthPage';
-
 
 function App() {
   const [user, setUser] = useState(null);
@@ -14,17 +14,19 @@ function App() {
       setUser(currentUser);
       setLoading(false);
     });
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe();
   }, []);
 
-  if (loading) {
+    if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   return (
-    <div>
-      {user ? <Dashboard user={user} /> : <AuthPage />}
-    </div>
+    <Routes>
+      <Route path="/" element={<Dashboard user={user} />} />
+      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
