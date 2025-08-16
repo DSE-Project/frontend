@@ -4,8 +4,8 @@ import Login from '../components/Login';
 import Register from '../components/Register';
 
 
-const AuthPage = () => {
-  const [view, setView] = useState('login'); // 'login' or 'register'
+const AuthPage = (props) => {
+  const [view, setView] = useState(props.task); // 'login' or 'register'
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">

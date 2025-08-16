@@ -24,7 +24,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Dashboard user={user} />} />
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task={'login'} />} />
+      <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task={'register'} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
