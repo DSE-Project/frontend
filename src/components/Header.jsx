@@ -22,7 +22,7 @@ const Header = ({ user }) => {
         <nav className="flex items-center space-x-4">
           {user ? (
             <div className="flex items-center space-x-4">
-              <span className="text-sm">Welcome, {user.email}</span>
+              {/* <span className="text-sm">Welcome, {user.email}</span> */}
               <button
                 onClick={handleSignOut}
                 className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition-colors"
