@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Login from '../components/Login';
 import Register from '../components/Register';
 
@@ -13,6 +14,15 @@ const AuthPage = () => {
         <p className="text-gray-500">AI-Powered Recession Risk Forecasting</p>
       </div>
       {view === 'login' ? <Login toggleView={setView} /> : <Register toggleView={setView} />}
+      
+      <div className="mt-6 text-center">
+        <Link
+          to="/"
+          className="text-blue-600 hover:text-blue-800 underline transition-colors"
+        >
+          Continue without login
+        </Link>
+      </div>
     </div>
   );
 };
