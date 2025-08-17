@@ -13,19 +13,24 @@ const Header = ({ user }) => {
   };
 
   return (
-    <header className="bg-blue-600 text-white shadow-lg">
+    <header className="bg-blue-900 text-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold hover:text-blue-200">
+        <Link
+          to="/"
+          className="text-xl font-bold hover:text-blue-300 transition-colors"
+        >
           US Recession Forecasting
         </Link>
         
         <nav className="flex items-center space-x-4">
           {user ? (
             <div className="flex items-center space-x-4">
-              {/* <span className="text-sm">Welcome, {user.email}</span> */}
+              <span className="text-sm text-gray-200">
+                Welcome, {user.email}
+              </span>
               <button
                 onClick={handleSignOut}
-                className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition-colors"
+                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition-colors"
               >
                 Sign Out
               </button>
@@ -34,7 +39,7 @@ const Header = ({ user }) => {
             <div className="flex items-center space-x-2">
               <Link
                 to="/auth/login"
-                className="bg-blue-500 hover:bg-blue-700 px-4 py-2 rounded transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition-colors"
               >
                 Login
               </Link>
