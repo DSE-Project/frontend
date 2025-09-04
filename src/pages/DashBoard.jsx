@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import Header from '../components/Header';
+import ModelPrediction from '../components/ModelPrediction';
 
 const Dashboard = ({ user }) => {
   const [userData, setUserData] = useState(null);
@@ -55,20 +56,9 @@ const Dashboard = ({ user }) => {
             <p className="text-gray-500">Here's your recession risk dashboard.</p>
             
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Recession Risk Score</h3>
-                <p className="text-gray-600">Risk analysis data will appear here</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Economic Indicators</h3>
-                <p className="text-gray-600">Economic metrics will appear here</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Forecasting Models</h3>
-                <p className="text-gray-600">Model predictions will appear here</p>
-              </div>
+              <ModelPrediction monthsAhead="1" />
+              <ModelPrediction monthsAhead="3" />
+              <ModelPrediction monthsAhead="6" />
             </div>
         </main>
     </div>
