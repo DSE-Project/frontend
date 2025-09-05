@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const ModelPrediction = ({ monthsAhead }) => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,7 +61,7 @@ const ModelPrediction = ({ monthsAhead }) => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('http://localhost:8000/api/v1/forecast/predict/1m', {
+      const response = await fetch(`${API_URL}/forecast/predict/1m`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
