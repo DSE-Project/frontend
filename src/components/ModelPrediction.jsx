@@ -8,7 +8,7 @@ const ModelPrediction = ({ monthsAhead }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const hardcodedData = {
+  const hardcodedData_1m = {
     "current_month_data": {
       "observation_date": "1/2/2025",
       "fedfunds": 4.40,
@@ -46,6 +46,65 @@ const ModelPrediction = ({ monthsAhead }) => {
     "historical_data_source": "csv"
   };
 
+  const hardcodedData_3m = {
+    "current_month_data": {
+      "observation_date": "1/8/2024",
+      "ICSA": 236700,
+      "CPIMEDICARE":565.759,
+      "USWTRADE": 6147.9,
+      "BBKMLEIX" : 1.5062454,
+      "COMLOAN" :4.5,
+      "UMCSENT" :62,
+      "MANEMP" : 12845,
+      "fedfunds" :5.33,
+      "PSTAX" :3074.386,
+      "USCONS" :8221,
+      "USGOOD" :21683,
+      "USINFO" :2960,
+      "CPIAPP": 131.124,
+      "CSUSHPISA" : 322.425,
+      "SECURITYBANK" : 10.8,
+      "SRVPRD":136409,
+      "INDPRO" :102.8692,
+      "TB6MS" :4.97,
+      "UNEMPLOY" :7153,
+      "USTPU" :29000,
+      "recession": 0
+    },
+    "use_historical_data": true,
+    "historical_data_source":"csv"
+  };
+
+  const hardcodedData_6m = {
+    "current_month_data": {
+      "observation_date": "1/8/2024",
+      "PSTAX":3100.43,
+      "USWTRADE": 6155.9,
+      "MANEMP":12843,
+      "CPIAPP":131.327,
+      "CSUSHPISA":322.345,
+      "ICSA" : 237700,
+      "fedfunds":5.33,
+      "BBKMLEIX" : 1.49545,
+      "TB3MS":5.15,
+      "USINFO":2916,
+      "PPIACO" : 258.735,
+      "CPIMEDICARE": 565.857,
+      "UNEMPLOY": 7209,
+      "TB1YR": 4.52,
+      "USGOOD":21682,
+      "CPIFOOD": 305.999,
+      "UMCSENT" : 64.9,
+      "SRVPRD": 136419,
+      "GDP":29502.54 ,
+      "INDPRO" : 103.55,
+      "recession" :0
+    },
+    "use_historical_data": true,
+    "historical_data_source": "csv"
+  };
+  
+
   const getTargetDate = () => {
     const currentDate = new Date();
     const targetDate = new Date(currentDate);
@@ -66,7 +125,7 @@ const ModelPrediction = ({ monthsAhead }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(hardcodedData),
+        body: JSON.stringify(hardcodedData_1m),
       });
 
       if (!response.ok) {
@@ -84,13 +143,55 @@ const ModelPrediction = ({ monthsAhead }) => {
   };
 
   const fetchPrediction3m = async () => {
-    // TODO: Implement 3m prediction
-    setError('3-month prediction not implemented yet');
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_URL}/forecast/predict/3m`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(hardcodedData_3m),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setPrediction(data);
+    } catch (err) {
+      setError('Failed to fetch prediction. Please try again.');
+      console.error('Error fetching prediction:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchPrediction6m = async () => {
-    // TODO: Implement 6m prediction
-    setError('6-month prediction not implemented yet');
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_URL}/forecast/predict/6m`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(hardcodedData_6m),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setPrediction(data);
+    } catch (err) {
+      setError('Failed to fetch prediction. Please try again.');
+      console.error('Error fetching prediction:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -112,6 +213,20 @@ const ModelPrediction = ({ monthsAhead }) => {
   const getMonthText = () => {
     return monthsAhead === '1' ? 'month' : 'months';
   };
+
+  const getPrediction = () => {
+    switch (monthsAhead) {
+      case '1':
+        return (prediction.prob_1m * 100).toFixed(2);
+      case '3':
+        return (prediction.prob_3m * 100).toFixed(2);
+      case '6':
+        return (prediction.prob_6m * 100).toFixed(2);
+      default:
+        return null;
+    }
+  }
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -136,7 +251,7 @@ const ModelPrediction = ({ monthsAhead }) => {
         <div className="space-y-4">
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-600 mb-2">
-              {(prediction.prob_1m * 100).toFixed(2)}%
+              {getPrediction()}%
             </div>
             <div className="text-sm text-gray-500">Recession Probability</div>
           </div>
@@ -154,7 +269,8 @@ const ModelPrediction = ({ monthsAhead }) => {
           </div>
           
           <div className="text-xs text-gray-400 text-center">
-            Model: {prediction.model_version} | Updated: {new Date(prediction.timestamp).toLocaleString()}
+            {/* Model: {prediction.model_version} | Updated: {new Date(prediction.timestamp).toLocaleString()} */}
+            Updated: {new Date(prediction.timestamp).toLocaleString()}
           </div>
         </div>
       )}
