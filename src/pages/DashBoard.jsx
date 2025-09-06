@@ -1,86 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
-import Header from '../components/Header';
-import SimulationTool from '../components/SimulationTool';
+import React from "react";
+import Header from "../components/Header";
+import SectionCard from "../components/SectionCard";
+import KpiCard from "../components/KpiCard";
+import SimpleBarChart from "../components/SimpleBarChart";
+import Sparkline from "../components/Sparkline";
+import RadialGauge from "../components/RadialGauge";
+import {
+  dashKpis,
+  horizonBar,
+  trend1m,
+  trend3m,
+  trend6m,
+  indicatorsNow,
+  indicatorsTrend,
+} from "../utils/dummyData";
 
-const Dashboard = ({ user }) => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user) {
-        setLoading(true);
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            setUserData(userDocSnap.data());
-          } else {
-            console.log('No user document found');
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchUserData();
-  }, [user]);
-
-  const getDisplayName = () => {
-    if (loading) return '';
-    if (userData && userData.firstName && userData.lastName) {
-      return `, ${userData.firstName} ${userData.lastName}`;
-    }
-    if (user) {
-      return `, ${user.email}`;
-    }
-    return '';
-  };
-
+const DashBoard = ({ user }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#0b1220] text-slate-200">
       <Header user={user} />
-      <main className="p-4 sm:p-6 lg:p-8">
-        <h2 className="text-3xl font-bold text-gray-900">
-          Welcome{getDisplayName()}!
-          {loading && user && (
-            <span className="text-sm text-gray-500 ml-2">Loading...</span>
-          )}
-        </h2>
-        <p className="text-gray-600 mt-1">Here's your recession risk dashboard.</p>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Recession Risk Score */}
-          <div className="bg-red-50 border-l-4 border-red-600 p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
-            <h3 className="text-lg font-semibold text-red-800 mb-2">Recession Risk Score</h3>
-            <p className="text-red-700">Risk analysis data will appear here.</p>
-          </div>
-
-          {/* Economic Indicators */}
-          <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Economic Indicators</h3>
-            <p className="text-blue-700">Economic metrics will appear here.</p>
-          </div>
-
-          {/* Forecasting Models */}
-          <div className="bg-green-50 border-l-4 border-green-600 p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
-            <h3 className="text-lg font-semibold text-green-800 mb-2">Forecasting Models</h3>
-            <p className="text-green-700">Model predictions will appear here.</p>
-          </div>
-
-          {/* Simulation Tool spanning full width */}
-          <div className="col-span-full bg-gray-100 border border-gray-300 p-6 rounded-lg shadow">
-            <SimulationTool />
-          </div>
+      <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {dashKpis.map((k) => <KpiCard key={k.title} {...k} />)}
         </div>
+
+        {/* Overview bar */}
+        <SectionCard>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <h3 className="text-xl font-semibold">Recession Probability Overview</h3>
+            <span className="text-xs text-slate-400">Dummy data</span>
+          </div>
+          <SimpleBarChart
+            categories={horizonBar.categories}
+            values={horizonBar.values.map((v) => v * 100)}
+            valueSuffix="%"
+            height={180}
+          />
+        </SectionCard>
+
+        {/* Trends */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SectionCard>
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">1 Month Trend</div>
+              <span className="text-xs text-slate-400">last 24</span>
+            </div>
+            <div className="mt-3"><Sparkline data={trend1m} height={80} showGradient /></div>
+          </SectionCard>
+
+          <SectionCard>
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">3 Months Trend</div>
+              <span className="text-xs text-slate-400">last 24</span>
+            </div>
+            <div className="mt-3"><Sparkline data={trend3m} height={80} color="#22c55e" showGradient /></div>
+          </SectionCard>
+
+          <SectionCard>
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">6 Months Trend</div>
+              <span className="text-xs text-slate-400">last 24</span>
+            </div>
+            <div className="mt-3"><Sparkline data={trend6m} height={80} color="#f59e0b" showGradient /></div>
+          </SectionCard>
+        </div>
+
+        {/* Indicators */}
+        <SectionCard>
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <h3 className="text-xl font-semibold">Key Economic Indicators</h3>
+            <span className="text-xs text-slate-400">Dummy data</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center gap-4">
+              <RadialGauge value={indicatorsNow.unemployment} max={20} label="Unemployment" suffix="%" />
+              <div className="flex-1">
+                <div className="text-sm text-slate-300/90 mb-2">Last 24</div>
+                <Sparkline data={indicatorsTrend.unemployment} height={60} />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <RadialGauge value={indicatorsNow.inflation} max={20} label="Inflation (CPI YoY)" suffix="%" />
+              <div className="flex-1">
+                <div className="text-sm text-slate-300/90 mb-2">Last 24</div>
+                <Sparkline data={indicatorsTrend.inflation} height={60} color="#eab308" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <RadialGauge value={indicatorsNow.fedFunds} max={20} label="Fed Funds Rate" suffix="%" />
+              <div className="flex-1">
+                <div className="text-sm text-slate-300/90 mb-2">Last 24</div>
+                <Sparkline data={indicatorsTrend.fedFunds} height={60} color="#60a5fa" />
+              </div>
+            </div>
+          </div>
+        </SectionCard>
       </main>
     </div>
   );
 };
 
-export default Dashboard;
+export default DashBoard;
