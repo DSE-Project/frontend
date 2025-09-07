@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase/firebase';
 import Dashboard from './pages/DashBoard';
+import CustomSimulation from './pages/CustomSimulation';
+import ReportGeneration from './pages/ReportGeneration';
 import AuthPage from './pages/AuthPage';
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Dashboard user={user} />} />
+      <Route path="/simulation" element={<CustomSimulation user={user} />} />
+      <Route path="/reports" element={<ReportGeneration user={user} />} />
       <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task={'login'} />} />
       <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task={'register'} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
