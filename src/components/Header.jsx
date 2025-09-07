@@ -13,10 +13,10 @@ const Header = ({ user }) => {
   };
 
   return (
-    <header className="bg-blue-600 text-white shadow-lg">
+    <header className="bg-blue-600 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold hover:text-blue-200">
-          US Recession Forecasting
+          Recession Scope
         </Link>
         
         <nav className="flex items-center space-x-4">

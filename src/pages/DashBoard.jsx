@@ -45,7 +45,7 @@ const Dashboard = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 pt-16">
       <Header user={user} />
       <SideBar />
       <main className="ml-64 p-4 sm:p-6 lg:p-8">

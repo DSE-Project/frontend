@@ -36,7 +36,7 @@ const SideBar = () => {
   ];
 
   return (
-    <div className="bg-white shadow-lg h-full w-64 fixed left-0 top-16 bottom-0 z-10">
+    <div className="bg-white shadow-lg h-full w-64 fixed left-0 top-16 bottom-0 z-40">
       <nav className="mt-8">
         <div className="px-4">
           <h2 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4">
