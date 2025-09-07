@@ -4,6 +4,7 @@ import { db } from '../firebase/firebase';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import ModelPrediction from '../components/ModelPrediction';
+import YearlyRiskChart from '../components/YearlyRiskChart';
 
 const Dashboard = ({ user }) => {
   const [userData, setUserData] = useState(null);
@@ -61,6 +62,10 @@ const Dashboard = ({ user }) => {
           <ModelPrediction monthsAhead="1" />
           <ModelPrediction monthsAhead="3" />
           <ModelPrediction monthsAhead="6" />
+        </div>
+
+        <div className="mt-8">
+          <YearlyRiskChart />
         </div>
       </main>
     </div>
