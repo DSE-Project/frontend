@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
-const Header = ({ user }) => {
+const Header = () => {
+  const { user, getDisplayName, isAuthenticated } = useAuth();
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -20,9 +23,9 @@ const Header = ({ user }) => {
         </Link>
         
         <nav className="flex items-center space-x-4">
-          {user ? (
+          {isAuthenticated() ? (
             <div className="flex items-center space-x-4">
-              {/* <span className="text-sm">Welcome, {user.email}</span> */}
+              <span className="text-sm">Welcome, {getDisplayName()}</span>
               <button
                 onClick={handleSignOut}
                 className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition-colors"
