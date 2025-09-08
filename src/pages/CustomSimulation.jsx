@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
-const CustomSimulation = ({ user }) => {
+const CustomSimulation = () => {
   const [activeTab, setActiveTab] = useState('1');
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { isAuthenticated } = useAuth();
 
   // Feature definitions with descriptions
   const featureDefinitions = {
@@ -239,7 +241,7 @@ const CustomSimulation = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
-      <Header user={user} />
+      <Header />
       <SideBar />
       <main className="ml-64 p-4 sm:p-6 lg:p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Custom Simulation Tool</h1>
