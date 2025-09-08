@@ -5,6 +5,7 @@ import Dashboard from './pages/DashBoard';
 import CustomSimulation from './pages/CustomSimulation';
 import ReportGeneration from './pages/ReportGeneration';
 import AuthPage from './pages/AuthPage';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 function App() {
   const { user, initializing } = useAuth();
@@ -21,8 +22,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Dashboard />} />
-      <Route path="/simulation" element={<CustomSimulation />} />
-      <Route path="/reports" element={<ReportGeneration />} />
+      <Route path="/simulation" element={<ProtectedRoute> <CustomSimulation /> </ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute> <ReportGeneration /> </ProtectedRoute>} />
       <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task={'login'} />} />
       <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task={'register'} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
