@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import ModelPrediction from '../components/ModelPrediction';
@@ -7,12 +8,13 @@ import YearlyRiskChart from '../components/YearlyRiskChart';
 
 const Dashboard = () => {
   const { getWelcomeMessage, loading } = useAuth();
+  const { isCollapsed } = useSidebar();
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className="ml-64 p-4 sm:p-6 lg:p-8">
+      <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         <h2 className="text-3xl font-bold text-gray-800">
           Welcome{getWelcomeMessage()}!
           {loading && (
