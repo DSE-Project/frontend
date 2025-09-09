@@ -6,8 +6,10 @@ const MacroIndicatorTile = ({ indicator, title, symbol }) => {
 
   const isPositive = indicator.change_value > 0;
   const isNegative = indicator.change_value < 0;
+  const hasChange = indicator.change_value !== null && indicator.change_value !== undefined;
   
   const formatValue = (value, unit) => {
+    if (value === null || value === undefined) return 'N/A';
     if (unit === '%') {
       return `${value.toFixed(1)}%`;
     }
@@ -18,6 +20,9 @@ const MacroIndicatorTile = ({ indicator, title, symbol }) => {
   };
 
   const formatChange = (changeValue, changePercent, unit) => {
+    if (!hasChange || changePercent === null || changePercent === undefined) {
+      return 'No change data';
+    }
     const sign = changeValue > 0 ? '+' : '';
     const valueStr = unit === '%' ? `${sign}${changeValue.toFixed(2)}pp` : `${sign}${changeValue.toFixed(2)}`;
     const percentStr = `${sign}${changePercent.toFixed(1)}%`;
@@ -25,18 +30,29 @@ const MacroIndicatorTile = ({ indicator, title, symbol }) => {
   };
 
   const formatLastUpdated = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 30) return `${diffDays} days ago`;
-    if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      return months === 1 ? '1 month ago' : `${months} months ago`;
+    try {
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original string if not a valid date
+      }
+      
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return '1 day ago';
+      if (diffDays < 30) return `${diffDays} days ago`;
+      if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return months === 1 ? '1 month ago' : `${months} months ago`;
+      }
+      return date.toLocaleDateString();
+    } catch (error) {
+      return dateString; // Return original string if parsing fails
     }
-    return date.toLocaleDateString();
   };
 
   return (
@@ -51,23 +67,28 @@ const MacroIndicatorTile = ({ indicator, title, symbol }) => {
             {formatValue(indicator.current_value, indicator.unit)}
           </div>
           <div className={`text-sm font-medium ${
+            !hasChange ? 'text-gray-400' :
             isPositive ? 'text-green-600' : 
             isNegative ? 'text-red-600' : 
             'text-gray-500'
           }`}>
-            <span className="inline-flex items-center">
-              {isPositive && (
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-              {isNegative && (
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-              {formatChange(indicator.change_value, indicator.change_percent, indicator.unit)}
-            </span>
+            {hasChange ? (
+              <span className="inline-flex items-center">
+                {isPositive && (
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {isNegative && (
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {formatChange(indicator.change_value, indicator.change_percent, indicator.unit)}
+              </span>
+            ) : (
+              <span>{formatChange(indicator.change_value, indicator.change_percent, indicator.unit)}</span>
+            )}
           </div>
         </div>
       </div>
@@ -197,8 +218,8 @@ const MacroIndicatorsSnapshot = () => {
         />
         <MacroIndicatorTile
           indicator={indicators?.ism_pmi}
-          title="ISM Manufacturing PMI"
-          symbol="PMI"
+          title="Industrial Production Index"
+          symbol="INDPRO"
         />
         <MacroIndicatorTile
           indicator={indicators?.consumer_confidence}
@@ -208,7 +229,7 @@ const MacroIndicatorsSnapshot = () => {
       </div>
       
       <div className="mt-4 text-xs text-gray-400 border-t pt-3">
-        Data sources: Federal Reserve Economic Data (FRED), Bureau of Labor Statistics, Conference Board
+        Data sources: Federal Reserve Economic Data (FRED), Bureau of Labor Statistics, University of Michigan
       </div>
     </div>
   );
