@@ -245,13 +245,13 @@ const TopDrivers = ({ monthsAhead }) => {
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
       console.log('Using mock SHAP data for monthsAhead:', monthsAhead);
       console.log('Mock data:', mockShapData[monthsAhead]);
-      setShapData(mockShapData[monthsAhead]);
+      // setShapData(mockShapData[monthsAhead]);
       
     } catch (err) {
       console.warn('API unavailable, using mock data:', err);
       console.log('Fallback mock data:', mockShapData[monthsAhead]);
       // Fallback to mock data on error
-      setShapData(mockShapData[monthsAhead]);
+      // setShapData(mockShapData[monthsAhead]);
     } finally {
       setLoading(false);
     }
