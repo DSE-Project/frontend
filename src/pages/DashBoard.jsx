@@ -7,6 +7,7 @@ import ModelPrediction from '../components/ModelPrediction';
 import YearlyRiskChart from '../components/YearlyRiskChart';
 import TopDrivers from '../components/TopDrivers';
 import MacroIndicatorsSnapshot from '../components/MacroIndicatorsSnapshot';
+import EconomicIndicatorsMixed from '../components/EconomicIndicatorsMixed';
 
 const Dashboard = () => {
   const { getWelcomeMessage, loading } = useAuth();
@@ -48,6 +49,11 @@ const Dashboard = () => {
         {/* Key Macroeconomic Snapshot */}
         <div className="mt-8">
           <MacroIndicatorsSnapshot />
+        </div>
+
+        {/* Economic Indicators Charts */}
+        <div className="mt-8">
+          <EconomicIndicatorsMixed />
         </div>
       </main>
     </div>
