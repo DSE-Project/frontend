@@ -11,101 +11,67 @@ const CustomSimulation = () => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [featureDefinitions, setFeatureDefinitions] = useState({});
+  const [definitionsLoading, setDefinitionsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
-
-  // Feature definitions with descriptions
-  const featureDefinitions = {
-    '1': {
-      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 0, max: 10, default: 4.40 },
-      TB3MS: { name: '3-Month Treasury Rate', description: '3-Month Treasury Constant Maturity Rate', min: 0, max: 10, default: 4.22 },
-      TB6MS: { name: '6-Month Treasury Rate', description: '6-Month Treasury Constant Maturity Rate', min: 0, max: 10, default: 4.14 },
-      TB1YR: { name: '1-Year Treasury Rate', description: '1-Year Treasury Constant Maturity Rate', min: 0, max: 10, default: 4.05 },
-      USTPU: { name: 'US Total Private Units', description: 'Total private housing units', min: 20000, max: 40000, default: 30000 },
-      USGOOD: { name: 'US Goods Production', description: 'US Goods production index', min: 15000, max: 30000, default: 21670 },
-      SRVPRD: { name: 'Services Production', description: 'Services production index', min: 10000, max: 20000, default: 13700 },
-      USCONS: { name: 'US Construction', description: 'Construction sector employment', min: 6000, max: 12000, default: 9000 },
-      MANEMP: { name: 'Manufacturing Employment', description: 'Manufacturing sector employment', min: 10000, max: 15000, default: 12800 },
-      USWTRADE: { name: 'US Wholesale Trade', description: 'Wholesale trade employment', min: 5000, max: 10000, default: 7602 },
-      USTRADE: { name: 'US Trade', description: 'Total trade employment', min: 12000, max: 20000, default: 15602 },
-      USINFO: { name: 'US Information Sector', description: 'Information sector employment', min: 2500, max: 4000, default: 3200 },
-      UNRATE: { name: 'Unemployment Rate', description: 'Unemployment rate percentage', min: 2, max: 10, default: 4.0 },
-      UNEMPLOY: { name: 'Unemployment Level', description: 'Number of unemployed persons', min: 4000, max: 12000, default: 6600 },
-      CPIFOOD: { name: 'CPI Food', description: 'Consumer Price Index for Food', min: 200, max: 400, default: 300 },
-      CPIMEDICARE: { name: 'CPI Medicare', description: 'Consumer Price Index for Medicare', min: 400, max: 800, default: 600 },
-      CPIRENT: { name: 'CPI Rent', description: 'Consumer Price Index for Rent', min: 1000, max: 2000, default: 1500 },
-      CPIAPP: { name: 'CPI Apparel', description: 'Consumer Price Index for Apparel', min: 100, max: 300, default: 200 },
-      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 20000, max: 30000, default: 25000 },
-      REALGDP: { name: 'Real GDP', description: 'Inflation-adjusted GDP', min: 18000, max: 25000, default: 21000 },
-      PCEPI: { name: 'PCE Price Index', description: 'Personal Consumption Expenditures Price Index', min: 120, max: 160, default: 140 },
-      PSAVERT: { name: 'Personal Saving Rate', description: 'Personal saving rate percentage', min: 2, max: 10, default: 5.0 },
-      PSTAX: { name: 'Personal Tax', description: 'Personal tax payments', min: 800, max: 1500, default: 1100 },
-      COMREAL: { name: 'Commercial Real Estate', description: 'Commercial real estate prices', min: 180000, max: 280000, default: 220000 },
-      COMLOAN: { name: 'Commercial Loans', description: 'Commercial loan growth rate', min: -5, max: 5, default: -0.3 },
-      SECURITYBANK: { name: 'Security Bank', description: 'Bank security holdings', min: -5, max: 5, default: -2.0 },
-      PPIACO: { name: 'Producer Price Index', description: 'Producer Price Index All Commodities', min: 200, max: 350, default: 270 },
-      M1SL: { name: 'M1 Money Stock', description: 'M1 money supply', min: 15000, max: 25000, default: 20000 },
-      M2SL: { name: 'M2 Money Stock', description: 'M2 money supply', min: 120000, max: 180000, default: 150000 }
-    },
-    '3': {
-      ICSA: { name: 'Initial Claims', description: 'Initial unemployment insurance claims', min: 200000, max: 300000, default: 236700 },
-      CPIMEDICARE: { name: 'CPI Medicare', description: 'Consumer Price Index for Medicare', min: 400, max: 700, default: 565.759 },
-      USWTRADE: { name: 'US Wholesale Trade', description: 'Wholesale trade employment', min: 5000, max: 8000, default: 6147.9 },
-      BBKMLEIX: { name: 'Bank Credit Index', description: 'Bank credit market index', min: 1, max: 2, default: 1.5062454 },
-      COMLOAN: { name: 'Commercial Loans', description: 'Commercial loan growth rate', min: 2, max: 8, default: 4.5 },
-      UMCSENT: { name: 'Consumer Sentiment', description: 'University of Michigan Consumer Sentiment', min: 50, max: 100, default: 62 },
-      MANEMP: { name: 'Manufacturing Employment', description: 'Manufacturing sector employment', min: 10000, max: 15000, default: 12845 },
-      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 3, max: 8, default: 5.33 },
-      PSTAX: { name: 'Personal Tax', description: 'Personal tax payments', min: 2500, max: 4000, default: 3074.386 },
-      USCONS: { name: 'US Construction', description: 'Construction sector employment', min: 6000, max: 10000, default: 8221 },
-      USGOOD: { name: 'US Goods Production', description: 'US Goods production index', min: 18000, max: 25000, default: 21683 },
-      USINFO: { name: 'US Information Sector', description: 'Information sector employment', min: 2500, max: 3500, default: 2960 },
-      CPIAPP: { name: 'CPI Apparel', description: 'Consumer Price Index for Apparel', min: 120, max: 150, default: 131.124 },
-      CSUSHPISA: { name: 'House Price Index', description: 'Case-Shiller US National Home Price Index', min: 300, max: 350, default: 322.425 },
-      SECURITYBANK: { name: 'Security Bank', description: 'Bank security holdings', min: 5, max: 20, default: 10.8 },
-      SRVPRD: { name: 'Services Production', description: 'Services production index', min: 130000, max: 150000, default: 136409 },
-      INDPRO: { name: 'Industrial Production', description: 'Industrial production index', min: 90, max: 120, default: 102.8692 },
-      TB6MS: { name: '6-Month Treasury Rate', description: '6-Month Treasury Constant Maturity Rate', min: 3, max: 7, default: 4.97 },
-      UNEMPLOY: { name: 'Unemployment Level', description: 'Number of unemployed persons', min: 5000, max: 10000, default: 7153 },
-      USTPU: { name: 'US Total Private Units', description: 'Total private housing units', min: 25000, max: 35000, default: 29000 }
-    },
-    '6': {
-      PSTAX: { name: 'Personal Tax', description: 'Personal tax payments', min: 2800, max: 3500, default: 3100.43 },
-      USWTRADE: { name: 'US Wholesale Trade', description: 'Wholesale trade employment', min: 5500, max: 7000, default: 6155.9 },
-      MANEMP: { name: 'Manufacturing Employment', description: 'Manufacturing sector employment', min: 11000, max: 14000, default: 12843 },
-      CPIAPP: { name: 'CPI Apparel', description: 'Consumer Price Index for Apparel', min: 120, max: 150, default: 131.327 },
-      CSUSHPISA: { name: 'House Price Index', description: 'Case-Shiller US National Home Price Index', min: 300, max: 350, default: 322.345 },
-      ICSA: { name: 'Initial Claims', description: 'Initial unemployment insurance claims', min: 200000, max: 280000, default: 237700 },
-      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 3, max: 8, default: 5.33 },
-      BBKMLEIX: { name: 'Bank Credit Index', description: 'Bank credit market index', min: 1, max: 2, default: 1.49545 },
-      TB3MS: { name: '3-Month Treasury Rate', description: '3-Month Treasury Constant Maturity Rate', min: 3, max: 7, default: 5.15 },
-      USINFO: { name: 'US Information Sector', description: 'Information sector employment', min: 2500, max: 3500, default: 2916 },
-      PPIACO: { name: 'Producer Price Index', description: 'Producer Price Index All Commodities', min: 240, max: 280, default: 258.735 },
-      CPIMEDICARE: { name: 'CPI Medicare', description: 'Consumer Price Index for Medicare', min: 500, max: 600, default: 565.857 },
-      UNEMPLOY: { name: 'Unemployment Level', description: 'Number of unemployed persons', min: 6000, max: 8500, default: 7209 },
-      TB1YR: { name: '1-Year Treasury Rate', description: '1-Year Treasury Constant Maturity Rate', min: 3, max: 6, default: 4.52 },
-      USGOOD: { name: 'US Goods Production', description: 'US Goods production index', min: 19000, max: 24000, default: 21682 },
-      CPIFOOD: { name: 'CPI Food', description: 'Consumer Price Index for Food', min: 280, max: 330, default: 305.999 },
-      UMCSENT: { name: 'Consumer Sentiment', description: 'University of Michigan Consumer Sentiment', min: 55, max: 80, default: 64.9 },
-      SRVPRD: { name: 'Services Production', description: 'Services production index', min: 130000, max: 145000, default: 136419 },
-      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 27000, max: 32000, default: 29502.54 },
-      INDPRO: { name: 'Industrial Production', description: 'Industrial production index', min: 95, max: 115, default: 103.55 }
-    }
-  };
 
   // State for form values
   const [formValues, setFormValues] = useState({});
 
-  // Initialize form values when tab changes
+  // Load feature definitions from backend
   useEffect(() => {
-    const currentFeatures = featureDefinitions[activeTab];
-    const initialValues = {};
-    Object.keys(currentFeatures).forEach(key => {
-      initialValues[key] = currentFeatures[key].default;
-    });
-    setFormValues(initialValues);
-    setPrediction(null);
-    setError('');
-  }, [activeTab]);
+    const loadFeatureDefinitions = async () => {
+      try {
+        setDefinitionsLoading(true);
+        const response = await fetch(`${API_URL}/simulate/features`);
+        if (!response.ok) throw new Error('Failed to load feature definitions');
+        
+        const data = await response.json();
+        
+        // Transform the API response to match the expected format
+        const transformedDefinitions = {};
+        Object.entries(data.models).forEach(([period, modelData]) => {
+          const periodKey = period.replace('m', ''); 
+          transformedDefinitions[periodKey] = {};
+          
+          modelData.features.forEach(feature => {
+            transformedDefinitions[periodKey][feature.feature_code] = {
+              name: feature.name,
+              description: feature.description,
+              min: feature.min_value,
+              max: feature.max_value,
+              default: feature.default_value,
+              isImportant: feature.is_important
+            };
+          });
+        });
+        
+        setFeatureDefinitions(transformedDefinitions);
+        setError('');
+      } catch (err) {
+        setError('Failed to load feature definitions. Please try again.');
+        console.error('Error loading features:', err);
+      } finally {
+        setDefinitionsLoading(false);
+      }
+    };
+
+    loadFeatureDefinitions();
+  }, []);
+
+  // Initialize form values when tab changes or definitions load
+  useEffect(() => {
+    if (Object.keys(featureDefinitions).length > 0 && featureDefinitions[activeTab]) {
+      const currentFeatures = featureDefinitions[activeTab];
+      const initialValues = {};
+      Object.keys(currentFeatures).forEach(key => {
+        initialValues[key] = currentFeatures[key].default;
+      });
+      setFormValues(initialValues);
+      setPrediction(null);
+      setError('');
+    }
+  }, [activeTab, featureDefinitions]);
 
   const handleValueChange = (feature, value) => {
     setFormValues(prev => ({
@@ -115,6 +81,8 @@ const CustomSimulation = () => {
   };
 
   const randomizeValues = () => {
+    if (!featureDefinitions[activeTab]) return;
+    
     const currentFeatures = featureDefinitions[activeTab];
     const randomValues = {};
     Object.keys(currentFeatures).forEach(key => {
@@ -126,6 +94,8 @@ const CustomSimulation = () => {
   };
 
   const clearAll = () => {
+    if (!featureDefinitions[activeTab]) return;
+    
     const currentFeatures = featureDefinitions[activeTab];
     const defaultValues = {};
     Object.keys(currentFeatures).forEach(key => {
@@ -268,6 +238,49 @@ const CustomSimulation = () => {
     );
   }
 
+  if (definitionsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 pt-16">
+        <Header />
+        <SideBar />
+        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading feature definitions...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error && Object.keys(featureDefinitions).length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 pt-16">
+        <Header />
+        <SideBar />
+        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="mb-6">
+              <svg className="mx-auto h-16 w-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Error Loading Features</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Retry
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
@@ -308,57 +321,65 @@ const CustomSimulation = () => {
                 <div className="flex space-x-3">
                   <button
                     onClick={clearAll}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm"
+                    disabled={!featureDefinitions[activeTab]}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                   >
                     Reset to Default
                   </button>
                   <button
                     onClick={randomizeValues}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                    disabled={!featureDefinitions[activeTab]}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                   >
                     Randomize Values
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-6 max-h-96 overflow-y-auto pr-2">
-                {Object.entries(featureDefinitions[activeTab]).map(([key, feature]) => (
-                  <div key={key} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">{feature.name}</label>
-                        <p className="text-xs text-gray-500">{feature.description}</p>
+              {featureDefinitions[activeTab] ? (
+                <div className="space-y-6 max-h-96 overflow-y-auto pr-2">
+                  {Object.entries(featureDefinitions[activeTab]).map(([key, feature]) => (
+                    <div key={key} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">{feature.name}</label>
+                          <p className="text-xs text-gray-500">{feature.description}</p>
+                        </div>
+                        <input
+                          type="number"
+                          value={formValues[key] || feature.default}
+                          onChange={(e) => handleValueChange(key, e.target.value)}
+                          className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                          step="0.01"
+                          min={feature.min}
+                          max={feature.max}
+                        />
                       </div>
                       <input
-                        type="number"
-                        value={formValues[key] || feature.default}
-                        onChange={(e) => handleValueChange(key, e.target.value)}
-                        className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
-                        step="0.01"
+                        type="range"
                         min={feature.min}
                         max={feature.max}
+                        step="0.01"
+                        value={formValues[key] || feature.default}
+                        onChange={(e) => handleValueChange(key, e.target.value)}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                       />
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>{feature.min}</span>
+                        <span>{feature.max}</span>
+                      </div>
                     </div>
-                    <input
-                      type="range"
-                      min={feature.min}
-                      max={feature.max}
-                      step="0.01"
-                      value={formValues[key] || feature.default}
-                      onChange={(e) => handleValueChange(key, e.target.value)}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                    />
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>{feature.min}</span>
-                      <span>{feature.max}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No features available for this time period</p>
+                </div>
+              )}
 
               <button
                 onClick={runSimulation}
-                disabled={loading}
+                disabled={loading || !featureDefinitions[activeTab]}
                 className="w-full mt-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {loading ? 'Running Simulation...' : 'Run Simulation'}
@@ -374,7 +395,7 @@ const CustomSimulation = () => {
               </h3>
               <RadialChart percentage={parseFloat(getPredictionValue())} isLoading={loading} />
               
-              {error && (
+              {error && prediction === null && (
                 <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
                   <p className="text-red-700 text-sm text-center">{error}</p>
                 </div>
