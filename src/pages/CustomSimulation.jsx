@@ -11,12 +11,15 @@ const CustomSimulation = () => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [simpleMode, setSimpleMode] = useState(true);
   const { isAuthenticated } = useAuth();
 
   // Feature definitions with descriptions
   const featureDefinitions = {
     '1': {
       fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 0, max: 10, default: 4.40 },
+      UNRATE: { name: 'Unemployment Rate', description: 'Unemployment rate percentage', min: 2, max: 10, default: 4.0 },
+      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 20000, max: 30000, default: 25000 },
       TB3MS: { name: '3-Month Treasury Rate', description: '3-Month Treasury Constant Maturity Rate', min: 0, max: 10, default: 4.22 },
       TB6MS: { name: '6-Month Treasury Rate', description: '6-Month Treasury Constant Maturity Rate', min: 0, max: 10, default: 4.14 },
       TB1YR: { name: '1-Year Treasury Rate', description: '1-Year Treasury Constant Maturity Rate', min: 0, max: 10, default: 4.05 },
@@ -28,13 +31,11 @@ const CustomSimulation = () => {
       USWTRADE: { name: 'US Wholesale Trade', description: 'Wholesale trade employment', min: 5000, max: 10000, default: 7602 },
       USTRADE: { name: 'US Trade', description: 'Total trade employment', min: 12000, max: 20000, default: 15602 },
       USINFO: { name: 'US Information Sector', description: 'Information sector employment', min: 2500, max: 4000, default: 3200 },
-      UNRATE: { name: 'Unemployment Rate', description: 'Unemployment rate percentage', min: 2, max: 10, default: 4.0 },
       UNEMPLOY: { name: 'Unemployment Level', description: 'Number of unemployed persons', min: 4000, max: 12000, default: 6600 },
       CPIFOOD: { name: 'CPI Food', description: 'Consumer Price Index for Food', min: 200, max: 400, default: 300 },
       CPIMEDICARE: { name: 'CPI Medicare', description: 'Consumer Price Index for Medicare', min: 400, max: 800, default: 600 },
       CPIRENT: { name: 'CPI Rent', description: 'Consumer Price Index for Rent', min: 1000, max: 2000, default: 1500 },
       CPIAPP: { name: 'CPI Apparel', description: 'Consumer Price Index for Apparel', min: 100, max: 300, default: 200 },
-      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 20000, max: 30000, default: 25000 },
       REALGDP: { name: 'Real GDP', description: 'Inflation-adjusted GDP', min: 18000, max: 25000, default: 21000 },
       PCEPI: { name: 'PCE Price Index', description: 'Personal Consumption Expenditures Price Index', min: 120, max: 160, default: 140 },
       PSAVERT: { name: 'Personal Saving Rate', description: 'Personal saving rate percentage', min: 2, max: 10, default: 5.0 },
@@ -47,6 +48,9 @@ const CustomSimulation = () => {
       M2SL: { name: 'M2 Money Stock', description: 'M2 money supply', min: 120000, max: 180000, default: 150000 }
     },
     '3': {
+      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 3, max: 8, default: 5.33 },
+      UNRATE: { name: 'Unemployment Rate', description: 'Unemployment rate percentage', min: 2, max: 10, default: 4.0 },
+      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 20000, max: 30000, default: 25000 },
       ICSA: { name: 'Initial Claims', description: 'Initial unemployment insurance claims', min: 200000, max: 300000, default: 236700 },
       CPIMEDICARE: { name: 'CPI Medicare', description: 'Consumer Price Index for Medicare', min: 400, max: 700, default: 565.759 },
       USWTRADE: { name: 'US Wholesale Trade', description: 'Wholesale trade employment', min: 5000, max: 8000, default: 6147.9 },
@@ -54,7 +58,6 @@ const CustomSimulation = () => {
       COMLOAN: { name: 'Commercial Loans', description: 'Commercial loan growth rate', min: 2, max: 8, default: 4.5 },
       UMCSENT: { name: 'Consumer Sentiment', description: 'University of Michigan Consumer Sentiment', min: 50, max: 100, default: 62 },
       MANEMP: { name: 'Manufacturing Employment', description: 'Manufacturing sector employment', min: 10000, max: 15000, default: 12845 },
-      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 3, max: 8, default: 5.33 },
       PSTAX: { name: 'Personal Tax', description: 'Personal tax payments', min: 2500, max: 4000, default: 3074.386 },
       USCONS: { name: 'US Construction', description: 'Construction sector employment', min: 6000, max: 10000, default: 8221 },
       USGOOD: { name: 'US Goods Production', description: 'US Goods production index', min: 18000, max: 25000, default: 21683 },
@@ -69,13 +72,15 @@ const CustomSimulation = () => {
       USTPU: { name: 'US Total Private Units', description: 'Total private housing units', min: 25000, max: 35000, default: 29000 }
     },
     '6': {
+      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 3, max: 8, default: 5.33 },
+      UNRATE: { name: 'Unemployment Rate', description: 'Unemployment rate percentage', min: 2, max: 10, default: 4.0 },
+      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 27000, max: 32000, default: 29502.54 },
       PSTAX: { name: 'Personal Tax', description: 'Personal tax payments', min: 2800, max: 3500, default: 3100.43 },
       USWTRADE: { name: 'US Wholesale Trade', description: 'Wholesale trade employment', min: 5500, max: 7000, default: 6155.9 },
       MANEMP: { name: 'Manufacturing Employment', description: 'Manufacturing sector employment', min: 11000, max: 14000, default: 12843 },
       CPIAPP: { name: 'CPI Apparel', description: 'Consumer Price Index for Apparel', min: 120, max: 150, default: 131.327 },
       CSUSHPISA: { name: 'House Price Index', description: 'Case-Shiller US National Home Price Index', min: 300, max: 350, default: 322.345 },
       ICSA: { name: 'Initial Claims', description: 'Initial unemployment insurance claims', min: 200000, max: 280000, default: 237700 },
-      fedfunds: { name: 'Federal Funds Rate', description: 'Interest rate set by Federal Reserve', min: 3, max: 8, default: 5.33 },
       BBKMLEIX: { name: 'Bank Credit Index', description: 'Bank credit market index', min: 1, max: 2, default: 1.49545 },
       TB3MS: { name: '3-Month Treasury Rate', description: '3-Month Treasury Constant Maturity Rate', min: 3, max: 7, default: 5.15 },
       USINFO: { name: 'US Information Sector', description: 'Information sector employment', min: 2500, max: 3500, default: 2916 },
@@ -87,7 +92,6 @@ const CustomSimulation = () => {
       CPIFOOD: { name: 'CPI Food', description: 'Consumer Price Index for Food', min: 280, max: 330, default: 305.999 },
       UMCSENT: { name: 'Consumer Sentiment', description: 'University of Michigan Consumer Sentiment', min: 55, max: 80, default: 64.9 },
       SRVPRD: { name: 'Services Production', description: 'Services production index', min: 130000, max: 145000, default: 136419 },
-      GDP: { name: 'Gross Domestic Product', description: 'Total economic output', min: 27000, max: 32000, default: 29502.54 },
       INDPRO: { name: 'Industrial Production', description: 'Industrial production index', min: 95, max: 115, default: 103.55 }
     }
   };
@@ -273,7 +277,15 @@ const CustomSimulation = () => {
       <Header />
       <SideBar />
       <main className="ml-64 p-4 sm:p-6 lg:p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Custom Simulation Tool</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-gray-800">Custom Simulation Tool</h1>
+          <button
+            onClick={() => setSimpleMode(!simpleMode)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+          >
+            {simpleMode ? 'Show Advanced Mode' : 'Show Simple Mode'}
+          </button>
+        </div>
         <p className="text-gray-600 mb-8">
           Adjust economic indicators to simulate different scenarios and analyze their impact on recession probability.
         </p>
@@ -304,7 +316,9 @@ const CustomSimulation = () => {
           <div className="lg:col-span-2">
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">Economic Indicators</h2>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {simpleMode ? 'Key Economic Indicators' : 'Economic Indicators'}
+                </h2>
                 <div className="flex space-x-3">
                   <button
                     onClick={clearAll}
@@ -321,8 +335,10 @@ const CustomSimulation = () => {
                 </div>
               </div>
 
-              <div className="space-y-6 max-h-96 overflow-y-auto pr-2">
-                {Object.entries(featureDefinitions[activeTab]).map(([key, feature]) => (
+              <div className={`space-y-6 ${simpleMode ? '' : 'max-h-96 overflow-y-auto pr-2'}`}>
+                {Object.entries(featureDefinitions[activeTab])
+                  .filter(([key]) => simpleMode ? ['fedfunds', 'UNRATE', 'GDP'].includes(key) : true)
+                  .map(([key, feature]) => (
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <div>
