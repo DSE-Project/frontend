@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
-const Header = ({ user }) => {
+const Header = () => {
+  const { user, getDisplayName, isAuthenticated } = useAuth();
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -13,21 +16,18 @@ const Header = ({ user }) => {
   };
 
   return (
-    <header className="bg-blue-900 text-white shadow-md">
+    <header className="bg-blue-600 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link
-          to="/"
-          className="text-xl font-bold hover:text-blue-300 transition-colors"
-        >
-          US Recession Forecasting
+        <Link to="/" className="text-xl font-bold hover:text-blue-200">
+          Recession Scope
         </Link>
         
         <nav className="flex items-center space-x-4">
-          {user ? (
+          {isAuthenticated() ? (
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-200">
-                Welcome, {user.email}
-              </span>
+
+              <span className="text-sm">Welcome, {getDisplayName()}</span>
+
               <button
                 onClick={handleSignOut}
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition-colors"

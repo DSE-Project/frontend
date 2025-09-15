@@ -1,29 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase/firebase';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import Dashboard from './pages/DashBoard';
+import CustomSimulation from './pages/CustomSimulation';
+import ReportGeneration from './pages/ReportGeneration';
 import AuthPage from './pages/AuthPage';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, initializing } = useAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-    if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-4 text-gray-600">Loading...</span>
+      </div>
+    );
   }
 
   return (
     <Routes>
-      <Route path="/" element={<Dashboard user={user} />} />
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/simulation" element={<ProtectedRoute> <CustomSimulation /> </ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute> <ReportGeneration /> </ProtectedRoute>} />
       <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task={'login'} />} />
       <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task={'register'} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
