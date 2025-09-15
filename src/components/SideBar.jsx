@@ -37,7 +37,17 @@ const SideBar = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
       )
-    }
+    },
+     {
+    name: 'Sentiment Dashboard',
+    path: '/sentiment-dashboard',
+    requiresAuth: false, // ✅ make it public (or true if you want login required)
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19a8 8 0 100-16 8 8 0 000 16zm-3-8h6m-3-3v6" />
+      </svg>
+    )
+  }
   ];
 
   const handleItemClick = (e, item) => {

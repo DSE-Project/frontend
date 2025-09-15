@@ -157,8 +157,7 @@ const CustomSimulation = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
-      <Header />
-      <SideBar />
+ 
       <main className="ml-64 p-4 sm:p-6 lg:p-8">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-gray-800">Custom Simulation Tool</h1>
