@@ -15,9 +15,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
+
+  
+
+
       <Header />
       <SideBar />
       <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+
         <h2 className="text-3xl font-bold text-gray-800">
           Welcome{getWelcomeMessage()}!
           {loading && (
@@ -44,6 +49,7 @@ const Dashboard = () => {
 
         <div className="mt-8">
           <YearlyRiskChart />
+
         </div>
 
         {/* Key Macroeconomic Snapshot */}
