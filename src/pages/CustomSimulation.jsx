@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import { useAuth } from '../contexts/AuthContext';
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+import { useSidebar } from '../contexts/SidebarContext';
+
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -15,6 +19,7 @@ const CustomSimulation = () => {
   const [error, setError] = useState('');
   const [simpleMode, setSimpleMode] = useState(true);
   const { isAuthenticated } = useAuth();
+  const { isCollapsed } = useSidebar();
 
   // Features for all horizons
   const featureDefinitions = {
@@ -179,6 +184,7 @@ const CustomSimulation = () => {
     );
   };
 
+
   // Chart data for all horizons
   const chartData = [
     { horizon: '1M', prob: (predictions['1'] || 0) * 100 },
@@ -188,6 +194,14 @@ const CustomSimulation = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
+
+
+  return (
+    <div className="min-h-screen bg-gray-100 pt-16">
+      <Header />
+      <SideBar />
+
+
       <main className="ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
@@ -198,6 +212,7 @@ const CustomSimulation = () => {
           >
             {simpleMode ? 'Show Advanced Mode' : 'Show Simple Mode'}
           </button>
+
         </div>
 
         {/* Tabs */}
