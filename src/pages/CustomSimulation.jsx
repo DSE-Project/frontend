@@ -192,9 +192,6 @@ const CustomSimulation = () => {
     { horizon: '6M', prob: (predictions['6'] || 0) * 100 },
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-100 pt-16">
-
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
