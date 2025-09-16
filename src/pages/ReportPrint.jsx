@@ -1,68 +1,25 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import SideBar from '../components/SideBar';
-import { useAuth } from '../contexts/AuthContext';
+import React from 'react';
 import ModelPrediction from '../components/ModelPrediction';
 import ColumnChart from '../components/ColumnChart';
 
 
-const ReportGeneration = () => {
-  const { isAuthenticated } = useAuth();
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const handleDownloadPdf = async () => {
-  setIsDownloading(true);
-  try {
-    const url = encodeURIComponent("http://localhost:5173/reports-print");
-    const response = await fetch(`http://localhost:8000/generate-report?url=${url}`);
-    const blob = await response.blob();
-    const pdfUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    
-    // Get current date and time
-    const now = new Date();
-    const timestamp = now.toISOString().replace(/[:]/g, "-").replace(/\..+/, ""); // e.g., 2025-09-11T15-30-45
-    const filename = `recession_report_${timestamp}.pdf`;
-
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-  } catch (err) {
-    console.error("Failed to generate PDF:", err);
-  } finally {
-    setIsDownloading(false);
-  }
-};
-
-
+const ReportPrint = () => {
   return (
-    <div className="min-h-screen bg-gray-100 pt-16">
-      <Header />
-      <SideBar />
-      <main className="ml-64 p-4 sm:p-6 lg:p-8">
-        <div id="pdf-content" className="bg-white p-6 rounded-lg shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-800">U.S. Recession Forecast: Trends & Insights</h1>
-            <button
-              onClick={handleDownloadPdf}
-              disabled={isDownloading}
-              className={`bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium
-                ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-              {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
-            </button>
-          </div>
-          <p className="text-gray-600 mb-6">Economic Indicators and Predictive Analysis</p>
-          <p>This report presents a forecast of potential U.S. recessions over the next 1 month, 3 months and 6 months, using key economic indicators and predictive modeling.</p>
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <ModelPrediction monthsAhead="1" />
-            <ModelPrediction monthsAhead="3" />
-            <ModelPrediction monthsAhead="6" />
-          </div>
-            <div>
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">U.S. Recession Forecast: Trends & Insights</h1>
+        <p className="text-gray-600 mb-6">
+          Economic Indicators and Predictive Analysis
+        </p>
+        <p>This report presents a forecast of potential U.S. recessions over the next 1 month, 3 months and 6 months, using key economic indicators and predictive modeling.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ModelPrediction monthsAhead="1" />
+          <ModelPrediction monthsAhead="3" />
+          <ModelPrediction monthsAhead="6" />
+        </div>
+        <div>
+          <div>
             <div className="bg-white rounded-2xl shadow p-6 mt-8">
               <p className="text-gray-700 mb-4">
                 Our latest analysis uses key economic indicators and predictive modeling to assess the likelihood of a U.S. recession occurring in the near future.
@@ -92,14 +49,13 @@ const ReportGeneration = () => {
                 </p>
               </div>
             </div>
-
           </div>
+        </div>
 
-        
-          <h1 className="mt-10 text-3xl font-bold text-gray-800">U.S. Recession Forecast: Indicators fluctuations</h1>
+        <h1 className="mt-10 text-3xl font-bold text-gray-800">U.S. Recession Forecast: Indicators fluctuations</h1>
 
-          <div className="flex flex-col gap-6 w-full">
-            <div className="w-full bg-white p-4 rounded shadow h-96">
+          <div className="flex flex-col gap-6 w-full mb-16">
+            <div className="w-full bg-white p-4 rounded shadow h-100 ">
               <p>
                 <strong>Federal Funds Rate (FedFunds):</strong> The interest rate at which banks lend to each other overnight. Rising rates can slow economic growth; falling rates often indicate efforts to stimulate the economy.
               </p>
@@ -120,13 +76,11 @@ const ReportGeneration = () => {
               <ColumnChart dateColumn="observation_date" valueColumn="UNEMPLOY" />
             </div>
           </div>
-
-
-
-        </div>
-      </main>
+        
+      </div>
+      
     </div>
   );
 };
 
-export default ReportGeneration;
+export default ReportPrint;

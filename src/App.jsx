@@ -6,6 +6,8 @@ import CustomSimulation from './pages/CustomSimulation';
 import ReportGeneration from './pages/ReportGeneration';
 import AuthPage from './pages/AuthPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import ReportPrint from './pages/ReportPrint';
+
 
 function App() {
   const { user, initializing } = useAuth();
@@ -26,6 +28,7 @@ function App() {
       <Route path="/reports" element={<ProtectedRoute> <ReportGeneration /> </ProtectedRoute>} />
       <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task={'login'} />} />
       <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task={'register'} />} />
+      <Route path="/reports-print" element={<ReportPrint />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
