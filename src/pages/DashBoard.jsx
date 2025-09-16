@@ -18,6 +18,7 @@ const Dashboard = () => {
 
   
 
+
       <Header />
       <SideBar />
       <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
