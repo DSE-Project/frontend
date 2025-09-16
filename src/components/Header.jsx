@@ -17,6 +17,7 @@ const Header = () => {
 
   return (
     <header className="bg-blue-600 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
+
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold hover:text-blue-200">
           Recession Scope
@@ -25,9 +26,7 @@ const Header = () => {
         <nav className="flex items-center space-x-4">
           {isAuthenticated() ? (
             <div className="flex items-center space-x-4">
-
               <span className="text-sm">Welcome, {getDisplayName()}</span>
-
               <button
                 onClick={handleSignOut}
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition-colors"
