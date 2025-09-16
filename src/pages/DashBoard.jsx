@@ -17,7 +17,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-100 pt-16">
 
   
-      <main className="ml-64 p-4 sm:p-6 lg:p-8">
+   
 
       <Header />
       <SideBar />
