@@ -7,7 +7,7 @@ import ModelPrediction from '../components/ModelPrediction';
 import YearlyRiskChart from '../components/YearlyRiskChart';
 import TopDrivers from '../components/TopDrivers';
 import MacroIndicatorsSnapshot from '../components/MacroIndicatorsSnapshot';
-import EconomicIndicatorsMixed from '../components/EconomicIndicatorsMixed';
+import EconomicIndicatorsMixed from '../components/EconomicIndicators/EconomicIndicatorsMixed';
 
 const Dashboard = () => {
   const { getWelcomeMessage, loading } = useAuth();
