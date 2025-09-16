@@ -2,13 +2,18 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import { useAuth } from '../contexts/AuthContext';
+
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
 import { useSidebar } from '../contexts/SidebarContext';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL ||"http://127.0.0.1:8000";
+
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 const CustomSimulation = () => {
-  const [activeTab, setActiveTab] = useState('6'); // default to 6-month
+  const [activeTab, setActiveTab] = useState('6'); // default 6M
   const [formValues, setFormValues] = useState({});
+  const [predictions, setPredictions] = useState({}); // store all horizons
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,7 +21,24 @@ const CustomSimulation = () => {
   const { isAuthenticated } = useAuth();
   const { isCollapsed } = useSidebar();
 
+  // Features for all horizons
   const featureDefinitions = {
+    '1': {
+      UNRATE: { name: 'Unemployment Rate', min: 0, max: 30, default: 4.0 },
+      CPIFOOD: { name: 'Food Price Increase', min: 0, max: 500, default: 300 },
+      TB3MS: { name: 'Interest Rate', min: 0, max: 30, default: 4.22 },
+      GDP: { name: 'GDP', min: 27000, max: 32000, default: 29502.54 },
+      PSTAX: { name: 'Personal Tax', min: 2800, max: 3500, default: 3100.43 },
+      UMCSENT: { name: 'Consumer Sentiment', min: 55, max: 80, default: 64.9 },
+    },
+    '3': {
+      UNRATE: { name: 'Unemployment Rate', min: 0, max: 30, default: 4.0 },
+      CPIFOOD: { name: 'Food Price Increase', min: 0, max: 500, default: 300 },
+      TB3MS: { name: 'Interest Rate', min: 0, max: 30, default: 4.22 },
+      GDP: { name: 'GDP', min: 27000, max: 32000, default: 29502.54 },
+      PSTAX: { name: 'Personal Tax', min: 2800, max: 3500, default: 3100.43 },
+      UMCSENT: { name: 'Consumer Sentiment', min: 55, max: 80, default: 64.9 },
+    },
     '6': {
       UNRATE: { name: 'Unemployment Rate', min: 0, max: 30, default: 4.0 },
       CPIFOOD: { name: 'Food Price Increase', min: 0, max: 500, default: 300 },
@@ -27,7 +49,7 @@ const CustomSimulation = () => {
     },
   };
 
-  // Initialize form values when tab or mode changes
+  // Initialize form values
   useEffect(() => {
     const currentFeatures = featureDefinitions[activeTab];
     if (!currentFeatures) return;
@@ -45,10 +67,12 @@ const CustomSimulation = () => {
     setError('');
   }, [activeTab, simpleMode]);
 
+  // Handle changes
   const handleValueChange = (feature, value) => {
     setFormValues(prev => ({ ...prev, [feature]: parseFloat(value) }));
   };
 
+  // Randomize / Reset
   const randomizeValues = () => {
     const currentFeatures = featureDefinitions[activeTab];
     const randomValues = {};
@@ -72,6 +96,8 @@ const CustomSimulation = () => {
     setFormValues(defaultValues);
   };
 
+
+  // Run simulation
   const runSimulation = async () => {
     setLoading(true);
     setError('');
@@ -96,20 +122,21 @@ const CustomSimulation = () => {
       }
 
       const data = await response.json();
+      const prob = parseFloat(data[`prob_${activeTab}m`] || 0);
+      const prediction_text = data.confidence_interval?.prediction_text || '';
+      const timestamp = data.timestamp || new Date().toISOString();
 
-      setPrediction({
-        prob: parseFloat(data[`prob_${activeTab}m`] || data.prob_6m || 0), // use active tab key or fallback
-        prediction_text: data.confidence_interval?.prediction_text || '',
-        timestamp: data.timestamp || new Date().toISOString(),
-      });
+      setPredictions(prev => ({ ...prev, [activeTab]: prob }));
+      setPrediction({ prob, prediction_text, timestamp });
     } catch (err) {
       console.error(err);
-      setError('Failed to run simulation. Please check console logs.');
+      setError('Failed to run simulation. Check console logs.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Radial chart component
   const RadialChart = ({ percentage, isLoading }) => {
     const radius = 80;
     const strokeWidth = 12;
@@ -158,12 +185,25 @@ const CustomSimulation = () => {
   };
 
 
+  // Chart data for all horizons
+  const chartData = [
+    { horizon: '1M', prob: (predictions['1'] || 0) * 100 },
+    { horizon: '3M', prob: (predictions['3'] || 0) * 100 },
+    { horizon: '6M', prob: (predictions['6'] || 0) * 100 },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-100 pt-16">
+
+
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
 
+
       <main className="ml-64 p-4 sm:p-6 lg:p-8">
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-gray-800">Custom Simulation Tool</h1>
           <button
@@ -175,9 +215,25 @@ const CustomSimulation = () => {
 
         </div>
 
+        {/* Tabs */}
+        <div className="flex space-x-4 mb-6">
+          {['1', '3', '6'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded font-semibold ${activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200 hover:bg-gray-600"}`}
+            >
+              {tab} Month
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Controls */}
           <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg space-y-6">
+         
+
+            {/* Feature Inputs */}
             {Object.entries(featureDefinitions[activeTab])
               .filter(([key]) => simpleMode ? ['UNRATE','CPIFOOD','TB3MS'].includes(key) : true)
               .map(([key, feature]) => (
@@ -225,13 +281,27 @@ const CustomSimulation = () => {
             <div className="bg-white p-6 rounded-lg shadow-lg text-center">
               <h3 className="text-lg font-semibold text-gray-800 mb-6">Recession Probability</h3>
               <RadialChart percentage={prediction ? prediction.prob * 100 : 0} isLoading={loading} />
+
               {error && <p className="mt-4 text-red-600">{error}</p>}
               {prediction && !loading && (
                 <div className="mt-6">
-                 
                   <p className="text-xs text-gray-400 mt-2">Updated: {new Date(prediction.timestamp).toLocaleString()}</p>
+                  <p className="mt-2 text-gray-700">{prediction.prediction_text}</p>
                 </div>
               )}
+
+              {/* Line chart for comparison */}
+              <div className="w-full h-48 bg-gray-100 p-4 rounded-lg mt-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                    <XAxis dataKey="horizon" stroke="#475569" />
+                    <YAxis stroke="#475569" />
+                    <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}%`, "Probability"]} />
+                    <Line type="monotone" dataKey="prob" stroke="#3b82f6" strokeWidth={3} dot={{ r: 5, fill: '#3b82f6' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
