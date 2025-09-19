@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import Header from "../components/Header";
+import { useSidebar } from '../contexts/SidebarContext';
 import {
   PieChart,
   Pie,
@@ -22,6 +23,7 @@ const SentimentDashboard = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const { isCollapsed } = useSidebar();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +56,7 @@ const SentimentDashboard = () => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -70,7 +72,7 @@ const SentimentDashboard = () => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="mb-6">
               <div className="text-red-500 text-4xl mb-4">⚠️</div>
@@ -150,7 +152,7 @@ const SentimentDashboard = () => {
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className="ml-64 p-4 sm:p-6 lg:p-8">
+      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         {/* Page Header */}
         <div className="bg-white rounded-lg p-6 mb-6 shadow-lg">
           <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
