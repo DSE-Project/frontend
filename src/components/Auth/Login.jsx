@@ -1,43 +1,45 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/firebase';
+import { supabaseClient } from '../../supabase/supabaseClient';
 
 const Login = ({ toggleView }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+    
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
     } catch (err) {
       // Beautify error messages
       let errorMessage = '';
-      switch (err.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email address.';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password. Please try again.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Please enter a valid email address.';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'This account has been disabled.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many failed attempts. Please try again later.';
-          break;
-        case 'auth/invalid-credential':
+      switch (err.message) {
+        case 'Invalid login credentials':
           errorMessage = 'Invalid email or password. Please check your credentials.';
           break;
+        case 'Email not confirmed':
+          errorMessage = 'Please confirm your email address before signing in.';
+          break;
+        case 'Too many requests':
+          errorMessage = 'Too many failed attempts. Please try again later.';
+          break;
         default:
-          errorMessage = 'Login failed. Please try again.';
+          errorMessage = err.message || 'Login failed. Please try again.';
       }
       setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,8 +49,22 @@ const Login = ({ toggleView }) => {
         <p className="text-gray-500 text-center mb-6">Sign in to access your dashboard</p>
         <form onSubmit={handleLogin}>
             <div className="space-y-4">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="Enter your email" 
+                  required 
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                />
+                <input 
+                  type="password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="Enter your password" 
+                  required 
+                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                />
             </div>
             {error && (
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -64,7 +80,13 @@ const Login = ({ toggleView }) => {
                 </div>
               </div>
             )}
-            <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition">Login</button>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full mt-6 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Signing In...' : 'Login'}
+            </button>
         </form>
         <p className="text-center text-gray-500 mt-6">
             Don't have an account?
