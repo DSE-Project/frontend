@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +10,7 @@ import ColumnChart from '../components/ColumnChart';
 
 const ReportGeneration = () => {
   const { isAuthenticated } = useAuth();
+  const { isCollapsed } = useSidebar();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownloadPdf = async () => {
@@ -42,7 +44,7 @@ const ReportGeneration = () => {
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className="ml-64 p-4 sm:p-6 lg:p-8">
+      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         <div id="pdf-content" className="bg-white p-6 rounded-lg shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-800">U.S. Recession Forecast: Trends & Insights</h1>
