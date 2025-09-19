@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/firebase';
+import { supabaseClient } from '../supabase/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -19,18 +17,22 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
 
-  // Fetch user data from Firestore
-  const fetchUserData = async (uid) => {
+  // Fetch user profile data from Supabase
+  const fetchUserData = async (userId) => {
     try {
-      const userDocRef = doc(db, 'users', uid);
-      const userDocSnap = await getDoc(userDocRef);
+      const { data, error } = await supabaseClient
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
       
-      if (userDocSnap.exists()) {
-        setUserData(userDocSnap.data());
-      } else {
-        console.log('No user document found');
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error fetching user data:', error);
         setUserData(null);
+        return;
       }
+      
+      setUserData(data);
     } catch (error) {
       console.error('Error fetching user data:', error);
       setUserData(null);
@@ -45,8 +47,8 @@ export const AuthProvider = ({ children }) => {
 
   // Get display name
   const getDisplayName = () => {
-    if (userData && userData.firstName && userData.lastName) {
-      return `${userData.firstName} ${userData.lastName}`;
+    if (userData && userData.first_name && userData.last_name) {
+      return `${userData.first_name} ${userData.last_name}`;
     }
     if (user && user.email) {
       return user.email;
@@ -56,8 +58,8 @@ export const AuthProvider = ({ children }) => {
 
   // Get welcome message
   const getWelcomeMessage = () => {
-    if (userData && userData.firstName && userData.lastName) {
-      return `, ${userData.firstName} ${userData.lastName}`;
+    if (userData && userData.first_name && userData.last_name) {
+      return `, ${userData.first_name} ${userData.last_name}`;
     }
     if (user && user.email) {
       return `, ${user.email}`;
@@ -76,24 +78,39 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
       
-      if (currentUser) {
-        setUser(currentUser);
-        await fetchUserData(currentUser.uid);
-      } else {
-        clearUserData();
+      if (session?.user) {
+        setUser(session.user);
+        await fetchUserData(session.user.id);
       }
       
       setLoading(false);
-      if (initializing) {
-        setInitializing(false);
-      }
-    });
+      setInitializing(false);
+    };
 
-    return () => unsubscribe();
-  }, [initializing]);
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+        setLoading(true);
+        
+        if (session?.user) {
+          setUser(session.user);
+          await fetchUserData(session.user.id);
+        } else {
+          clearUserData();
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const value = {
     // State
