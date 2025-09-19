@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import { useAuth } from '../contexts/AuthContext';
+import { useSidebar } from '../contexts/SidebarContext';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -14,6 +15,7 @@ const CustomSimulation = () => {
   const [featureDefinitions, setFeatureDefinitions] = useState({});
   const [definitionsLoading, setDefinitionsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const { isCollapsed } = useSidebar();
 
   // State for form values
   const [formValues, setFormValues] = useState({});
@@ -115,7 +117,6 @@ const CustomSimulation = () => {
         recession: 0
       },
       use_historical_data: true,
-      historical_data_source: "csv"
     };
 
     try {
@@ -215,7 +216,7 @@ const CustomSimulation = () => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="mb-6">
               <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +244,7 @@ const CustomSimulation = () => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -260,7 +261,7 @@ const CustomSimulation = () => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className="ml-64 p-4 sm:p-6 lg:p-8">
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
             <div className="mb-6">
               <svg className="mx-auto h-16 w-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,7 +286,7 @@ const CustomSimulation = () => {
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className="ml-64 p-4 sm:p-6 lg:p-8">
+      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Custom Simulation Tool</h1>
         <p className="text-gray-600 mb-8">
           Adjust economic indicators to simulate different scenarios and analyze their impact on recession probability.
