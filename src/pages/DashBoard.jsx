@@ -10,7 +10,7 @@ import MacroIndicatorsSnapshot from '../components/MacroIndicatorsSnapshot';
 import EconomicIndicatorsMixed from '../components/EconomicIndicators/EconomicIndicatorsMixed';
 
 const Dashboard = () => {
-  const { getWelcomeMessage, loading } = useAuth();
+  const { getWelcomeMessage, isLoadingUserData, initializing } = useAuth();
   const { isCollapsed } = useSidebar();
 
   return (
@@ -21,7 +21,7 @@ const Dashboard = () => {
 
         <h2 className="text-3xl font-bold text-gray-800">
           Welcome{getWelcomeMessage()}!
-          {loading && (
+          {(initializing || isLoadingUserData()) && (
             <span className="text-sm text-gray-500 ml-2">Loading...</span>
           )}
         </h2>

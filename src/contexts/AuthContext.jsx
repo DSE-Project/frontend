@@ -77,18 +77,27 @@ export const AuthProvider = ({ children }) => {
     return !!userData;
   };
 
+  // Check if we're still loading user data specifically
+  const isLoadingUserData = () => {
+    return !!user && !userData && loading;
+  };
+
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        setUser(session.user);
-        await fetchUserData(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setUser(session.user);
+          await fetchUserData(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setLoading(false);
+        setInitializing(false);
       }
-      
-      setLoading(false);
-      setInitializing(false);
     };
 
     getInitialSession();
@@ -96,21 +105,28 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setLoading(true);
-        
-        if (session?.user) {
-          setUser(session.user);
-          await fetchUserData(session.user.id);
-        } else {
-          clearUserData();
+        // Only set loading if we're not initializing
+        if (!initializing) {
+          setLoading(true);
         }
         
-        setLoading(false);
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            await fetchUserData(session.user.id);
+          } else {
+            clearUserData();
+          }
+        } catch (error) {
+          console.error('Error handling auth state change:', error);
+        } finally {
+          setLoading(false);
+        }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initializing]);
 
   const value = {
     // State
@@ -124,6 +140,7 @@ export const AuthProvider = ({ children }) => {
     getWelcomeMessage,
     isAuthenticated,
     isUserDataLoaded,
+    isLoadingUserData,
     fetchUserData,
     clearUserData,
   };
