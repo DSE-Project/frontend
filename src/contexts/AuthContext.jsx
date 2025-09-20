@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabaseClient } from '../supabase/supabaseClient';
+import { supabase } from '../supabase/supabase';
 
 const AuthContext = createContext();
 
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   // Fetch user profile data from Supabase
   const fetchUserData = async (userId) => {
     try {
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabaseClient.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
         setUser(session.user);
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setLoading(true);
         

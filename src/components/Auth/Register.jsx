@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabaseClient } from '../../supabase/supabaseClient';
+import { supabase } from '../../supabase/supabase';
 
 const Register = ({ toggleView }) => {
   const [firstName, setFirstName] = useState('');
@@ -29,7 +29,7 @@ const Register = ({ toggleView }) => {
     
     try {
       // Sign up the user
-      const { data, error } = await supabaseClient.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
@@ -40,7 +40,7 @@ const Register = ({ toggleView }) => {
 
       if (data.user) {
         // Create user profile
-        const { error: profileError } = await supabaseClient
+        const { error: profileError } = await supabase
           .from('user_profiles')
           .insert([
             {
