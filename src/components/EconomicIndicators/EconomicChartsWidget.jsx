@@ -13,7 +13,7 @@ import {
   Filler,
   ArcElement
 } from 'chart.js';
-import { economicChartsAPI, ECONOMIC_INDICATORS, TIME_PERIODS } from '../api/economicCharts';
+import { economicChartsAPI, ECONOMIC_INDICATORS, TIME_PERIODS } from '../../api/economicCharts';
 
 // Register Chart.js components
 ChartJS.register(

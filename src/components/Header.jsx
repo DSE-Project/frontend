@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
+import { supabase } from '../supabase/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
@@ -9,7 +8,10 @@ const Header = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }

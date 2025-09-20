@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import Header from "../components/Header";
+import { useSidebar } from '../contexts/SidebarContext';
 import {
   PieChart,
   Pie,
@@ -23,6 +23,7 @@ const SentimentDashboard = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const { isCollapsed } = useSidebar();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,28 +53,40 @@ const SentimentDashboard = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading sentiment analysis...</p>
-        </div>
+      <div className="min-h-screen bg-gray-100 pt-16">
+        <Header />
+        <SideBar />
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 mt-4">Loading sentiment analysis...</p>
+            </div>
+          </div>
+        </main>
       </div>
     );
 
   if (error)
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-        <div className="bg-white rounded-lg p-6 max-w-md text-center shadow-lg">
-          <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Data</h2>
-          <p className="text-gray-500 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="min-h-screen bg-gray-100 pt-16">
+        <Header />
+        <SideBar />
+        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="mb-6">
+              <div className="text-red-500 text-4xl mb-4">⚠️</div>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Data</h2>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
       </div>
     );
 
@@ -139,232 +152,233 @@ const SentimentDashboard = () => {
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
+      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+        {/* Page Header */}
+        <div className="bg-white rounded-lg p-6 mb-6 shadow-lg">
+          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
+            Reddit Economic Sentiment Dashboard
+          </h1>
+          <p className="text-gray-500 text-center">
+            Real-time analysis of economic discussions across Reddit communities
+          </p>
+        </div>
 
-      {/* Page Header */}
-      <div className="bg-white rounded-lg p-6 mb-6 shadow-lg w-full mx-4 sm:mx-6 lg:mx-8">
-        <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
-          Reddit Economic Sentiment Dashboard
-        </h1>
-        <p className="text-gray-500 text-center">
-          Real-time analysis of economic discussions across Reddit communities
-        </p>
-      </div>
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-gray-300 mb-6 overflow-x-auto">
+          {["overview", "posts", "trends", "summary"].map((tab) => (
+            <button
+              key={tab}
+              className={`px-4 py-2 font-medium whitespace-nowrap ${
+                activeTab === tab
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-gray-300 mb-6 overflow-x-auto w-full px-4 sm:px-6 lg:px-8">
-        {["overview", "posts", "trends", "summary"].map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 font-medium whitespace-nowrap ${
-              activeTab === tab
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
+        <div className="space-y-6">
+          {/* Overview Tab */}
+          {activeTab === "overview" && (
+            <div className="bg-white rounded-lg p-6 shadow-lg space-y-6">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800 text-center">Overview</h2>
 
-      <div className="px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <div className="bg-white rounded-lg p-6 shadow-lg w-full space-y-6">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800 text-center">Overview</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 w-full">
-              <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
-                <div className="text-2xl font-bold text-blue-600">{data?.summary?.total_posts || 0}</div>
-                <div className="text-gray-500">Total Posts</div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
-                <div className="text-2xl font-bold text-green-600">{data?.summary?.total_comments || 0}</div>
-                <div className="text-gray-500">Total Comments</div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
-                <div className="text-2xl font-bold text-purple-600">{data?.summary?.total_points || 0}</div>
-                <div className="text-gray-500">Total Points</div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
-                <div className="text-2xl font-bold text-yellow-600">{data?.summary?.time_range_days || 0}d</div>
-                <div className="text-gray-500">Time Range</div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
-                <div className="text-2xl font-bold text-pink-600">
-                  {data?.summary?.avg_engagement?.toFixed(2) || 0}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
+                  <div className="text-2xl font-bold text-blue-600">{data?.summary?.total_posts || 0}</div>
+                  <div className="text-gray-500">Total Posts</div>
                 </div>
-                <div className="text-gray-500">Avg Engagement</div>
-              </div>
-            </div>
-
-            {/* Sentiment Pie */}
-            {totalSentiments > 0 && (
-              <div className="mt-6 h-96 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={sentimentData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={120}
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
-                      labelLine={false}
-                    >
-                      {sentimentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value, name, props) => [
-                        `${value} posts (${props.payload.percentage}%)`,
-                        name,
-                      ]}
-                      contentStyle={{
-                        backgroundColor: "#F9FAFB",
-                        border: "none",
-                        color: "#111827",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {/* Key Highlights */}
-            <div className="bg-gray-50 p-4 rounded-lg shadow w-full">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Key Highlights</h3>
-              <ul className="text-gray-600 list-disc list-inside space-y-1">
-                <li>Total posts collected: {data?.summary?.total_posts}</li>
-                <li>Total comments received: {data?.summary?.total_comments}</li>
-                <li>Overall engagement points: {data?.summary?.total_points}</li>
-                <li>Time span of collected data: {data?.summary?.time_range_days} days</li>
-                <li>Average engagement per post: {data?.summary?.avg_engagement?.toFixed(2)}</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {/* Posts Tab */}
-        {activeTab === "posts" && (
-          <div className="bg-white rounded-lg p-6 shadow-lg w-full">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Recent Economic Discussions</h2>
-            {posts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {topPosts.map((post, idx) => (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50"
-                  >
-                    <div
-                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
-                        post.sentiment === "positive"
-                          ? "bg-green-100 text-green-800"
-                          : post.sentiment === "negative"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {post.sentiment?.toUpperCase() || "NEUTRAL"}
-                    </div>
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-blue-600 font-medium hover:underline mb-2 text-lg"
-                    >
-                      {post.title}
-                    </a>
-                    {post.content && (
-                      <p className="text-gray-600 mb-3 text-sm">
-                        {post.content.length > 120 ? post.content.substring(0, 120) + "..." : post.content}
-                      </p>
-                    )}
-                    <div className="flex justify-between items-center text-xs text-gray-500">
-                      <span>r/{post.subreddit}</span>
-                      <div className="flex space-x-3">
-                        <span>▲ {post.upvotes || 0}</span>
-                        <span>💬 {post.comments_count || 0}</span>
-                      </div>
-                    </div>
-                    {post.date && <div className="text-xs text-gray-400 mt-2">{new Date(post.date).toLocaleDateString()}</div>}
+                <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
+                  <div className="text-2xl font-bold text-green-600">{data?.summary?.total_comments || 0}</div>
+                  <div className="text-gray-500">Total Comments</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
+                  <div className="text-2xl font-bold text-purple-600">{data?.summary?.total_points || 0}</div>
+                  <div className="text-gray-500">Total Points</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
+                  <div className="text-2xl font-bold text-yellow-600">{data?.summary?.time_range_days || 0}d</div>
+                  <div className="text-gray-500">Time Range</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
+                  <div className="text-2xl font-bold text-pink-600">
+                    {data?.summary?.avg_engagement?.toFixed(2) || 0}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No posts available for analysis</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Trends Tab */}
-        {activeTab === "trends" && (
-          <div className="bg-white rounded-lg p-6 shadow-lg w-full">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Sentiment Trends Over Time</h2>
-            {dailyDataArray.length > 0 ? (
-              <div className="h-96 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={dailyDataArray}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="date" stroke="#6B7280" />
-                    <YAxis
-                      stroke="#6B7280"
-                      domain={[-1, 1]}
-                      tickFormatter={(value) =>
-                        value === 1 ? "Positive" : value === -1 ? "Negative" : "Neutral"
-                      }
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#F9FAFB", border: "none", color: "#111827" }}
-                      formatter={(value) => {
-                        const sentiment =
-                          value > 0.3 ? "Positive" : value < -0.3 ? "Negative" : "Neutral";
-                        return [`${sentiment} (${value})`, "Average Sentiment"];
-                      }}
-                    />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="avgSentiment"
-                      stroke="#3B82F6"
-                      fill="#3B82F6"
-                      fillOpacity={0.3}
-                      name="Average Sentiment"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-96 flex items-center justify-center">
-                <p className="text-gray-500 text-center">No trend data available</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Summary Tab */}
-        {activeTab === "summary" && (
-          <div className="bg-white rounded-lg p-6 shadow-lg w-full">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">AI Analysis Summary</h2>
-            {data?.llm_summary ? (
-              <div className="bg-gray-50 p-6 rounded-lg shadow w-full">
-                <div className="prose prose-invert max-w-none">
-                  <p className="text-gray-700 whitespace-pre-wrap">{data.llm_summary}</p>
+                  <div className="text-gray-500">Avg Engagement</div>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No AI summary available</p>
+
+              {/* Sentiment Pie */}
+              {totalSentiments > 0 && (
+                <div className="mt-6 h-96">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={sentimentData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label={({ name, percentage }) => `${name}: ${percentage}%`}
+                        labelLine={false}
+                      >
+                        {sentimentData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, name, props) => [
+                          `${value} posts (${props.payload.percentage}%)`,
+                          name,
+                        ]}
+                        contentStyle={{
+                          backgroundColor: "#F9FAFB",
+                          border: "none",
+                          color: "#111827",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Key Highlights */}
+              <div className="bg-gray-50 p-4 rounded-lg shadow">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Key Highlights</h3>
+                <ul className="text-gray-600 list-disc list-inside space-y-1">
+                  <li>Total posts collected: {data?.summary?.total_posts}</li>
+                  <li>Total comments received: {data?.summary?.total_comments}</li>
+                  <li>Overall engagement points: {data?.summary?.total_points}</li>
+                  <li>Time span of collected data: {data?.summary?.time_range_days} days</li>
+                  <li>Average engagement per post: {data?.summary?.avg_engagement?.toFixed(2)}</li>
+                </ul>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+
+          {/* Posts Tab */}
+          {activeTab === "posts" && (
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">Recent Economic Discussions</h2>
+              {posts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {topPosts.map((post, idx) => (
+                    <div
+                      key={idx}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50"
+                    >
+                      <div
+                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
+                          post.sentiment === "positive"
+                            ? "bg-green-100 text-green-800"
+                            : post.sentiment === "negative"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {post.sentiment?.toUpperCase() || "NEUTRAL"}
+                      </div>
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-blue-600 font-medium hover:underline mb-2 text-lg"
+                      >
+                        {post.title}
+                      </a>
+                      {post.content && (
+                        <p className="text-gray-600 mb-3 text-sm">
+                          {post.content.length > 120 ? post.content.substring(0, 120) + "..." : post.content}
+                        </p>
+                      )}
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span>r/{post.subreddit}</span>
+                        <div className="flex space-x-3">
+                          <span>▲ {post.upvotes || 0}</span>
+                          <span>💬 {post.comments_count || 0}</span>
+                        </div>
+                      </div>
+                      {post.date && <div className="text-xs text-gray-400 mt-2">{new Date(post.date).toLocaleDateString()}</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No posts available for analysis</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Trends Tab */}
+          {activeTab === "trends" && (
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">Sentiment Trends Over Time</h2>
+              {dailyDataArray.length > 0 ? (
+                <div className="h-96">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={dailyDataArray}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="date" stroke="#6B7280" />
+                      <YAxis
+                        stroke="#6B7280"
+                        domain={[-1, 1]}
+                        tickFormatter={(value) =>
+                          value === 1 ? "Positive" : value === -1 ? "Negative" : "Neutral"
+                        }
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#F9FAFB", border: "none", color: "#111827" }}
+                        formatter={(value) => {
+                          const sentiment =
+                            value > 0.3 ? "Positive" : value < -0.3 ? "Negative" : "Neutral";
+                          return [`${sentiment} (${value})`, "Average Sentiment"];
+                        }}
+                      />
+                      <Legend />
+                      <Area
+                        type="monotone"
+                        dataKey="avgSentiment"
+                        stroke="#3B82F6"
+                        fill="#3B82F6"
+                        fillOpacity={0.3}
+                        name="Average Sentiment"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-96 flex items-center justify-center">
+                  <p className="text-gray-500 text-center">No trend data available</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Summary Tab */}
+          {activeTab === "summary" && (
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800">AI Analysis Summary</h2>
+              {data?.llm_summary ? (
+                <div className="bg-gray-50 p-6 rounded-lg shadow">
+                  <div className="prose prose-invert max-w-none">
+                    <p className="text-gray-700 whitespace-pre-wrap">{data.llm_summary}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No AI summary available</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
