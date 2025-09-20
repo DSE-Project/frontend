@@ -4,8 +4,8 @@ import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import { useAuth } from '../contexts/AuthContext';
-import ModelPrediction from '../components/ModelPrediction';
-import ColumnChart from '../components/ColumnChart';
+import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
+import ColumnChart from '../components/ChartComponents/ColumnChart';
 
 
 const ReportGeneration = () => {

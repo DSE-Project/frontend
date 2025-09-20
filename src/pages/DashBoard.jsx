@@ -3,10 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
-import ModelPrediction from '../components/ModelPrediction';
-import YearlyRiskChart from '../components/YearlyRiskChart';
-import TopDrivers from '../components/TopDrivers';
-import MacroIndicatorsSnapshot from '../components/MacroIndicatorsSnapshot';
+import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
+import YearlyRiskChart from '../components/DashBoardComponents/YearlyRiskChart';
+import TopDrivers from '../components/DashBoardComponents/TopDrivers';
+import MacroIndicatorsSnapshot from '../components/DashBoardComponents/MacroIndicatorsSnapshot';
 import EconomicIndicatorsMixed from '../components/EconomicIndicators/EconomicIndicatorsMixed';
 
 const Dashboard = () => {

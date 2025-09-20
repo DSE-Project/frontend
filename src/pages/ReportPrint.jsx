@@ -1,6 +1,6 @@
 import React from 'react';
-import ModelPrediction from '../components/ModelPrediction';
-import ColumnChart from '../components/ColumnChart';
+import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
+import ColumnChart from '../components/ChartComponents/ColumnChart';
 
 
 const ReportPrint = () => {
