@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch user profile data from Supabase
   const fetchUserData = async (userId) => {
+    console.log("[AuthContext] fetchUserData started for user:", userId);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -27,20 +28,22 @@ export const AuthProvider = ({ children }) => {
         .single();
       
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error fetching user data:', error);
+        console.error('[AuthContext] Error fetching user data:', error);
         setUserData(null);
         return;
       }
       
+      console.log("[AuthContext] User data fetched:", data);
       setUserData(data);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('[AuthContext] Error fetching user data:', error);
       setUserData(null);
     }
   };
 
   // Clear user data
   const clearUserData = () => {
+    console.log("[AuthContext] Clearing user data");
     setUser(null);
     setUserData(null);
   };
@@ -83,50 +86,84 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    console.log("[AuthContext] useEffect triggered");
+    
+    let isInitialized = false;
+
     // Get initial session
     const getInitialSession = async () => {
+      console.log("[AuthContext] getInitialSession started");
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("[AuthContext] getSession result:", { session, error });
+
         if (session?.user) {
+          console.log("[AuthContext] Session has user:", session.user.id);
           setUser(session.user);
           await fetchUserData(session.user.id);
+        } else {
+          console.log("[AuthContext] No session found");
         }
       } catch (error) {
-        console.error('Error getting initial session:', error);
+        console.error("[AuthContext] Error getting initial session:", error);
       } finally {
+        console.log("[AuthContext] Finished initial session fetch. Setting loading=false, initializing=false");
         setLoading(false);
         setInitializing(false);
+        isInitialized = true;
       }
     };
-
-    getInitialSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Only set loading if we're not initializing
-        if (!initializing) {
+        console.log("[AuthContext] onAuthStateChange event:", event, session?.user?.id);
+
+        // Skip the first SIGNED_IN event during initialization
+        if (!isInitialized && event === 'SIGNED_IN') {
+          console.log("[AuthContext] Skipping SIGNED_IN event during initialization");
+          return;
+        }
+
+        // Only set loading if we're already initialized
+        if (isInitialized) {
+          console.log("[AuthContext] Setting loading=true for auth change");
           setLoading(true);
         }
-        
+
         try {
           if (session?.user) {
+            console.log("[AuthContext] Auth change has user:", session.user.id);
             setUser(session.user);
-            await fetchUserData(session.user.id);
+            
+            // Only fetch user data if we're initialized
+            if (isInitialized) {
+              await fetchUserData(session.user.id);
+            }
           } else {
+            console.log("[AuthContext] Auth change has no user, clearing data");
             clearUserData();
           }
         } catch (error) {
-          console.error('Error handling auth state change:', error);
+          console.error("[AuthContext] Error handling auth state change:", error);
         } finally {
-          setLoading(false);
+          // Only set loading=false if we're initialized
+          if (isInitialized) {
+            console.log("[AuthContext] Finished handling auth change, setting loading=false");
+            setLoading(false);
+          }
         }
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [initializing]);
+    // Start the initialization
+    getInitialSession();
+
+    return () => {
+      console.log("[AuthContext] Cleanup: unsubscribing from auth listener");
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const value = {
     // State
@@ -144,6 +181,13 @@ export const AuthProvider = ({ children }) => {
     fetchUserData,
     clearUserData,
   };
+
+  console.log("[AuthContext] Context value:", { 
+    hasUser: !!user, 
+    hasUserData: !!userData, 
+    loading, 
+    initializing 
+  });
 
   return (
     <AuthContext.Provider value={value}>
