@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch user profile data from Supabase
   const fetchUserData = async (userId) => {
-    console.log("[AuthContext] fetchUserData started for user:", userId);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -33,7 +32,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       
-      console.log("[AuthContext] User data fetched:", data);
       setUserData(data);
     } catch (error) {
       console.error('[AuthContext] Error fetching user data:', error);
@@ -43,7 +41,6 @@ export const AuthProvider = ({ children }) => {
 
   // Clear user data
   const clearUserData = () => {
-    console.log("[AuthContext] Clearing user data");
     setUser(null);
     setUserData(null);
   };
@@ -86,19 +83,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log("[AuthContext] useEffect triggered");
     
     let isInitialized = false;
 
     // Get initial session
     const getInitialSession = async () => {
-      console.log("[AuthContext] getInitialSession started");
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("[AuthContext] getSession result:", { session, error });
-
         if (session?.user) {
-          console.log("[AuthContext] Session has user:", session.user.id);
           setUser(session.user);
           await fetchUserData(session.user.id);
         } else {
@@ -107,7 +99,6 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         console.error("[AuthContext] Error getting initial session:", error);
       } finally {
-        console.log("[AuthContext] Finished initial session fetch. Setting loading=false, initializing=false");
         setLoading(false);
         setInitializing(false);
         isInitialized = true;
@@ -121,19 +112,16 @@ export const AuthProvider = ({ children }) => {
 
         // Skip the first SIGNED_IN event during initialization
         if (!isInitialized && event === 'SIGNED_IN') {
-          console.log("[AuthContext] Skipping SIGNED_IN event during initialization");
           return;
         }
 
         // Only set loading if we're already initialized
         if (isInitialized) {
-          console.log("[AuthContext] Setting loading=true for auth change");
           setLoading(true);
         }
 
         try {
           if (session?.user) {
-            console.log("[AuthContext] Auth change has user:", session.user.id);
             setUser(session.user);
             
             // Only fetch user data if we're initialized
@@ -141,7 +129,6 @@ export const AuthProvider = ({ children }) => {
               await fetchUserData(session.user.id);
             }
           } else {
-            console.log("[AuthContext] Auth change has no user, clearing data");
             clearUserData();
           }
         } catch (error) {
@@ -149,7 +136,6 @@ export const AuthProvider = ({ children }) => {
         } finally {
           // Only set loading=false if we're initialized
           if (isInitialized) {
-            console.log("[AuthContext] Finished handling auth change, setting loading=false");
             setLoading(false);
           }
         }
@@ -160,7 +146,6 @@ export const AuthProvider = ({ children }) => {
     getInitialSession();
 
     return () => {
-      console.log("[AuthContext] Cleanup: unsubscribing from auth listener");
       subscription.unsubscribe();
     };
   }, []);
@@ -181,13 +166,6 @@ export const AuthProvider = ({ children }) => {
     fetchUserData,
     clearUserData,
   };
-
-  console.log("[AuthContext] Context value:", { 
-    hasUser: !!user, 
-    hasUserData: !!userData, 
-    loading, 
-    initializing 
-  });
 
   return (
     <AuthContext.Provider value={value}>
