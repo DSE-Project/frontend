@@ -8,44 +8,6 @@ const ModelPrediction = ({ monthsAhead }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const hardcodedData_1m = {
-    "current_month_data": {
-      "observation_date": "1/2/2025",
-      "fedfunds": 4.40,
-      "TB3MS": 4.22,
-      "TB6MS": 4.14,
-      "TB1YR": 4.05,
-      "USTPU": 30000,
-      "USGOOD": 21670,
-      "SRVPRD": 13700,
-      "USCONS": 9000,
-      "MANEMP": 12800,
-      "USWTRADE": 7602,
-      "USTRADE": 15602,
-      "USINFO": 3200,
-      "UNRATE": 4.0,
-      "UNEMPLOY": 6600,
-      "CPIFOOD": 300,
-      "CPIMEDICARE": 600,
-      "CPIRENT": 1500,
-      "CPIAPP": 200,
-      "GDP": 25000,
-      "REALGDP": 21000,
-      "PCEPI": 140,
-      "PSAVERT": 5.0,
-      "PSTAX": 1100,
-      "COMREAL": 220000,
-      "COMLOAN": -0.3,
-      "SECURITYBANK": -2.0,
-      "PPIACO": 270,
-      "M1SL": 20000,
-      "M2SL": 150000,
-      "recession": 0
-    },
-    "use_historical_data": true,
-    "historical_data_source": "csv"
-  };
-
   const hardcodedData_3m = {
     "current_month_data": {
       "observation_date": "1/8/2024",
@@ -121,11 +83,10 @@ const ModelPrediction = ({ monthsAhead }) => {
     setError('');
     try {
       const response = await fetch(`${API_URL}/forecast/predict/1m`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(hardcodedData_1m),
       });
 
       if (!response.ok) {
