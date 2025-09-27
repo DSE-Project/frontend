@@ -8,67 +8,12 @@ const ModelPrediction = ({ monthsAhead }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const hardcodedData_3m = {
-    "current_month_data": {
-      "observation_date": "1/8/2024",
-      "ICSA": 236700,
-      "CPIMEDICARE":565.759,
-      "USWTRADE": 6147.9,
-      "BBKMLEIX" : 1.5062454,
-      "COMLOAN" :4.5,
-      "UMCSENT" :62,
-      "MANEMP" : 12845,
-      "fedfunds" :5.33,
-      "PSTAX" :3074.386,
-      "USCONS" :8221,
-      "USGOOD" :21683,
-      "USINFO" :2960,
-      "CPIAPP": 131.124,
-      "CSUSHPISA" : 322.425,
-      "SECURITYBANK" : 10.8,
-      "SRVPRD":136409,
-      "INDPRO" :102.8692,
-      "TB6MS" :4.97,
-      "UNEMPLOY" :7153,
-      "USTPU" :29000,
-      "recession": 0
-    },
-    "use_historical_data": true,
-    "historical_data_source":"csv"
-  };
-
-  const hardcodedData_6m = {
-    "current_month_data": {
-      "observation_date": "1/8/2024",
-      "PSTAX":3100.43,
-      "USWTRADE": 6155.9,
-      "MANEMP":12843,
-      "CPIAPP":131.327,
-      "CSUSHPISA":322.345,
-      "ICSA" : 237700,
-      "fedfunds":5.33,
-      "BBKMLEIX" : 1.49545,
-      "TB3MS":5.15,
-      "USINFO":2916,
-      "PPIACO" : 258.735,
-      "CPIMEDICARE": 565.857,
-      "UNEMPLOY": 7209,
-      "TB1YR": 4.52,
-      "USGOOD":21682,
-      "CPIFOOD": 305.999,
-      "UMCSENT" : 64.9,
-      "SRVPRD": 136419,
-      "GDP":29502.54 ,
-      "INDPRO" : 103.55,
-      "recession" :0
-    },
-    "use_historical_data": true,
-    "historical_data_source": "csv"
-  };
-  
-
   const getTargetDate = () => {
-    const currentDate = new Date();
+    if (!prediction || !prediction.input_date) {
+      return ''; // Return blank if no prediction data or input_date
+    }
+    
+    const currentDate = new Date(prediction.input_date);
     const targetDate = new Date(currentDate);
     targetDate.setMonth(currentDate.getMonth() + parseInt(monthsAhead));
     
@@ -108,11 +53,10 @@ const ModelPrediction = ({ monthsAhead }) => {
     setError('');
     try {
       const response = await fetch(`${API_URL}/forecast/predict/3m`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(hardcodedData_3m),
       });
 
       if (!response.ok) {
@@ -134,11 +78,10 @@ const ModelPrediction = ({ monthsAhead }) => {
     setError('');
     try {
       const response = await fetch(`${API_URL}/forecast/predict/6m`, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(hardcodedData_6m),
       });
 
       if (!response.ok) {
@@ -192,7 +135,7 @@ const ModelPrediction = ({ monthsAhead }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
-        Recession Probability in {monthsAhead} {getMonthText()}: {getTargetDate()}
+        Recession Probability in {monthsAhead} {getMonthText()}{getTargetDate() ? `: ${getTargetDate()}` : ''}
       </h3>
       
       {loading && (
@@ -230,7 +173,6 @@ const ModelPrediction = ({ monthsAhead }) => {
           </div>
           
           <div className="text-xs text-gray-400 text-center">
-            {/* Model: {prediction.model_version} | Updated: {new Date(prediction.timestamp).toLocaleString()} */}
             Updated: {new Date(prediction.timestamp).toLocaleString()}
           </div>
         </div>
