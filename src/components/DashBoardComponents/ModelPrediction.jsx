@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
-const ModelPrediction = ({ monthsAhead }) => {
+const ModelPrediction = ({ monthsAhead, onResult }) => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -131,6 +131,14 @@ const ModelPrediction = ({ monthsAhead }) => {
     }
   }
 
+  useEffect(() => {
+    if (prediction && !loading) {
+      if (typeof onResult === "function") {
+        onResult(monthsAhead, getPrediction(), getTargetDate(), prediction);
+      }
+    }
+  }, [prediction, loading]);
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -180,5 +188,6 @@ const ModelPrediction = ({ monthsAhead }) => {
     </div>
   );
 };
+
 
 export default ModelPrediction;
