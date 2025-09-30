@@ -6,6 +6,7 @@ import SideBar from '../components/SideBar';
 import { useAuth } from '../contexts/AuthContext';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 import ColumnChart from '../components/ChartComponents/ColumnChart';
+import LastTwoRowsCard from '../components/ChartComponents/Last_two_data';
 
 
 const ReportGeneration = () => {
@@ -13,32 +14,43 @@ const ReportGeneration = () => {
   const { isCollapsed } = useSidebar();
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const [results, setResults] = useState({});
+  const [tb3msData, setTb3msData] = useState([]);
+
+  const handleResult = (monthsAhead, probability, targetDate, rawPrediction) => {
+    setResults(prev => ({
+      ...prev,
+      [monthsAhead]: { probability, targetDate, raw: rawPrediction },
+    }));
+  };
+
+
+
   const handleDownloadPdf = async () => {
-  setIsDownloading(true);
-  try {
-    const url = encodeURIComponent("http://localhost:5173/reports-print");
-    const response = await fetch(`http://localhost:8000/generate-report?url=${url}`);
-    const blob = await response.blob();
-    const pdfUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    
-    // Get current date and time
-    const now = new Date();
-    const timestamp = now.toISOString().replace(/[:]/g, "-").replace(/\..+/, ""); // e.g., 2025-09-11T15-30-45
-    const filename = `recession_report_${timestamp}.pdf`;
+    setIsDownloading(true);
+    try {
+      const url = encodeURIComponent("http://localhost:5173/reports-print");
+      const response = await fetch(`http://localhost:8000/generate-report?url=${url}`);
+      const blob = await response.blob();
+      const pdfUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = pdfUrl;
 
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-  } catch (err) {
-    console.error("Failed to generate PDF:", err);
-  } finally {
-    setIsDownloading(false);
-  }
-};
+      // Get current date and time
+      const now = new Date();
+      const timestamp = now.toISOString().replace(/[:]/g, "-").replace(/\..+/, "");
+      const filename = `recession_report_${timestamp}.pdf`;
 
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
@@ -46,6 +58,7 @@ const ReportGeneration = () => {
       <SideBar />
       <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         <div id="pdf-content" className="bg-white p-6 rounded-lg shadow-lg">
+          {/* Header Section */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-800">U.S. Recession Forecast: Trends & Insights</h1>
             <button
@@ -57,73 +70,164 @@ const ReportGeneration = () => {
               {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
             </button>
           </div>
+
+          {/* Intro Text */}
           <p className="text-gray-600 mb-6">Economic Indicators and Predictive Analysis</p>
           <p>This report presents a forecast of potential U.S. recessions over the next 1 month, 3 months and 6 months, using key economic indicators and predictive modeling.</p>
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <ModelPrediction monthsAhead="1" />
-            <ModelPrediction monthsAhead="3" />
-            <ModelPrediction monthsAhead="6" />
-          </div>
-            <div>
+
+          {/* Recession Probability Section */}
+          <div>
+            {/* Model Predictions Grid */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <ModelPrediction monthsAhead="1" onResult={handleResult} />
+              <ModelPrediction monthsAhead="3" onResult={handleResult} />
+              <ModelPrediction monthsAhead="6" onResult={handleResult} />
+            </div>
+
+            {/* Recession Probability Section */}
             <div className="bg-white rounded-2xl shadow p-6 mt-8">
               <p className="text-gray-700 mb-4">
                 Our latest analysis uses key economic indicators and predictive modeling to assess the likelihood of a U.S. recession occurring in the near future.
               </p>
+
               <p className="text-gray-700 mb-6">
-                As of <span className="font-medium">September 16, 2025</span>, the model does <span className="font-semibold text-green-600">not predict a recession</span> in the short to medium term. The estimated probabilities are:
+                As of <span className="font-medium">{new Date().toLocaleDateString()}</span>, the model estimates the following probabilities:
               </p>
 
-              <ul className="space-y-2 text-gray-700">
-                <li>
-                  <span className="font-medium">1 Month (October 2025):</span> 
-                  &nbsp;9.94% chance of recession
-                </li>
-                <li>
-                  <span className="font-medium">3 Months (December 2025):</span> 
-                  &nbsp;18.44% chance of recession
-                </li>
-                <li>
-                  <span className="font-medium">6 Months (March 2026):</span> 
-                  &nbsp;25.28% chance of recession
-                </li>
+              <ul className="space-y-3">
+                {["1", "3", "6"].map((m) => (
+                  <li key={m} className="flex items-center space-x-3">
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+                    <span className="text-gray-700">
+                      <span className="font-medium">
+                        {m === "1" ? "1 Month" : m + " Months"}
+                      </span>{" "}
+                      ({results[m]?.targetDate ?? "--"}):{" "}
+                      <span className="font-semibold text-blue-600">
+                        {results[m]?.probability ?? "--"}%
+                      </span>{" "}
+                      chance of recession
+                    </span>
+                  </li>
+                ))}
               </ul>
+
+
+
 
               <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-700 font-medium mb-2">
-                  While recession risk gradually increases over the next six months, the overall probabilities remain relatively low. Based on current economic conditions, the model’s confidence is high that no recession will occur in the immediate future.
+                  While recession risk varies across the forecast horizon, the overall probabilities remain moderate based on current model outputs
                 </p>
               </div>
             </div>
+          </div>
+          <div className="mt-10">
+            <p> The U.S. economy continues to navigate a complex landscape shaped by interest rate adjustments, labor market dynamics, and global financial conditions. Monitoring these factors is critical for anticipating potential shifts in growth, stability, and recession risk. This report brings together recent data and forecasts to provide a clearer picture of near-term economic trends. </p>
+          </div>
+          <div className="mt-4">
+          <p> While certain indicators, such as unemployment and consumer spending, suggest areas of vulnerability, others like industrial production and GDP remain relatively stable. These mixed signals highlight the importance of ongoing monitoring and flexible policy responses to ensure the economy remains resilient. </p>
+          </div>  
 
+          {/* Indicators Fluctuations */}
+          <section className="mt-10">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">
+              U.S. Recession Forecast: Key Indicators
+            </h1>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Federal Funds Rate */}
+              <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-700 mb-1">
+                  Federal Funds Rate (FedFunds)
+                </h2>
+                <p className="text-gray-600 text-sm mb-2">
+                  The interest rate at which banks lend to each other overnight. Rising rates can slow economic growth; falling rates often indicate efforts to stimulate the economy.
+                </p>
+                <div className="flex-1 min-h-[180px]">
+                  <ColumnChart
+                    dateColumn="observation_date"
+                    valueColumn="fedfunds"
+                    color="#3b82f6" // blue
+                    showShaded={false} // removes shading
+                  />
+                </div>
+              </div>
+
+              {/* GDP */}
+              <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-700 mb-1">
+                  Gross Domestic Product (GDP)
+                </h2>
+                <p className="text-gray-600 text-sm mb-2">
+                  Measures the total value of all goods and services produced in the U.S. Declining GDP over multiple quarters can signal a recession.
+                </p>
+                <div className="flex-1 min-h-[180px]">
+                  <ColumnChart
+                    dateColumn="observation_date"
+                    valueColumn="GDP"
+                    color="#10b981" // green
+                    showShaded={false}
+                  />
+                </div>
+              </div>
+
+              {/* Unemployment */}
+              <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-700 mb-1">
+                  Unemployment Rate (UNEMPLOY)
+                </h2>
+                <p className="text-gray-600 text-sm mb-2">
+                  Percentage of people actively looking for work but unable to find a job. Rising unemployment is a strong signal that the economy is weakening.
+                </p>
+                <div className="flex-1 min-h-[180px]">
+                  <ColumnChart
+                    dateColumn="observation_date"
+                    valueColumn="UNEMPLOY"
+                    color="#f59e0b" // amber
+                    showShaded={false}
+                  />
+                </div>
+              </div>
+
+              {/* Unemployment */}
+              <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-700 mb-1">
+                  3 Months Treasury Bills (TB3f)
+                </h2>
+                <p className="text-gray-600 text-sm mb-2">
+                  Percentage of people actively looking for work but unable to find a job. Rising unemployment is a strong signal that the economy is weakening.
+                </p>
+                <div className="flex-1 min-h-[180px]">
+                  <ColumnChart
+                    dateColumn="observation_date"
+                    valueColumn="TB3MS"
+                    color="Red" // amber
+                    showShaded={false}
+                  />
+                </div>
+              </div>
+            </div>
+
+
+          </section>
+
+          <div>
+            <section className="mt-10">
+              <h1 className="text-2xl font-bold mb-4">Latest Economic Data</h1>
+              <div className="grid md:grid-cols-1 gap-6">
+                <LastTwoRowsCard tableName="historical_data_1m" />
+                
+              </div>
+            </section>
+          </div>
+
+          <div className='mt-10'>
+            <p> Overall, the analysis underscores both challenges and opportunities for the U.S. economy in the months ahead. Proactive planning, informed decision-making, and close attention to key economic signals will be essential for mitigating risks and fostering sustainable growth. </p>
           </div>
 
         
-          <h1 className="mt-10 text-3xl font-bold text-gray-800">U.S. Recession Forecast: Indicators fluctuations</h1>
-
-          <div className="flex flex-col gap-6 w-full">
-            <div className="w-full bg-white p-4 rounded shadow h-96">
-              <p>
-                <strong>Federal Funds Rate (FedFunds):</strong> The interest rate at which banks lend to each other overnight. Rising rates can slow economic growth; falling rates often indicate efforts to stimulate the economy.
-              </p>
-              <ColumnChart dateColumn="observation_date" valueColumn="fedfunds" />
-            </div>
-
-            <div className="w-full bg-white p-4 rounded shadow h-96">
-              <p>
-                <strong>Gross Domestic Product (GDP):</strong> Measures the total value of all goods and services produced in the U.S. Declining GDP over multiple quarters can signal a recession.
-              </p>
-              <ColumnChart dateColumn="observation_date" valueColumn="GDP" />
-            </div>
-
-            <div className="w-full bg-white p-4 rounded shadow h-96">
-              <p>
-                <strong>Unemployment Rate (UNEMPLOY):</strong> Percentage of people actively looking for work but unable to find a job. Rising unemployment is a strong signal that the economy is weakening.
-              </p>
-              <ColumnChart dateColumn="observation_date" valueColumn="UNEMPLOY" />
-            </div>
-          </div>
-
-
+        
 
         </div>
       </main>
