@@ -281,7 +281,7 @@ const EconomicIndicatorsMixed = () => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState(TIME_PERIODS.TWELVE_MONTHS);
+  const [selectedPeriod, setSelectedPeriod] = useState(TIME_PERIODS.ALL);
 
   useEffect(() => {
     fetchData();

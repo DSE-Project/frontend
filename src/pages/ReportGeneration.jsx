@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 import ColumnChart from '../components/ChartComponents/ColumnChart';
 import LastTwoRowsCard from '../components/ChartComponents/Last_two_data';
+import SaveReportButton from '../components/SaveReportButton';
 
 
 const ReportGeneration = () => {
@@ -61,14 +62,33 @@ const ReportGeneration = () => {
           {/* Header Section */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-800">U.S. Recession Forecast: Trends & Insights</h1>
-            <button
-              onClick={handleDownloadPdf}
-              disabled={isDownloading}
-              className={`bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium
-                ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-              {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
-            </button>
+            <div className="flex space-x-3">
+              <SaveReportButton 
+                reportData={{
+                  predictions: results,
+                  generatedAt: new Date().toISOString(),
+                  reportType: 'recession_forecast'
+                }}
+                reportType="Economic Forecast"
+                defaultTitle={`Recession Forecast - ${new Date().toLocaleDateString()}`}
+                defaultDescription="U.S. recession probability forecast with key economic indicators analysis"
+                variant="secondary"
+                onSaveSuccess={(data) => {
+                  alert('Report saved successfully! You can view it in your profile.');
+                }}
+                onSaveError={(error) => {
+                  alert(`Failed to save report: ${error}`);
+                }}
+              />
+              <button
+                onClick={handleDownloadPdf}
+                disabled={isDownloading}
+                className={`bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium
+                  ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
+              </button>
+            </div>
           </div>
 
           {/* Intro Text */}
