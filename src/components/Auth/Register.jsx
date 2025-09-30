@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase/firebase';
+import { supabase } from '../../supabase/supabase';
 
 const Register = ({ toggleView }) => {
   const [firstName, setFirstName] = useState('');
@@ -11,6 +9,7 @@ const Register = ({ toggleView }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -25,40 +24,57 @@ const Register = ({ toggleView }) => {
     }
 
     setError('');
+    setMessage('');
     setLoading(true);
     
     try {
-      // Create user account
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      // Store additional user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+      // Sign up the user
+      const { data, error } = await supabase.auth.signUp({
         email: email,
-        createdAt: new Date().toISOString(),
-        uid: user.uid
+        password: password,
       });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: data.user.id,
+              first_name: firstName.trim(),
+              last_name: lastName.trim(),
+              email: email,
+              created_at: new Date().toISOString(),
+            }
+          ]);
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          // Don't throw here as the user account was created successfully
+        }
+
+        setMessage('Registration successful! Please check your email to confirm your account.');
+      }
       
     } catch (err) {
       // Beautify error messages
       let errorMessage = '';
-      switch (err.code) {
-        case 'auth/email-already-in-use':
+      switch (err.message) {
+        case 'User already registered':
           errorMessage = 'An account with this email already exists.';
           break;
-        case 'auth/invalid-email':
-          errorMessage = 'Please enter a valid email address.';
-          break;
-        case 'auth/weak-password':
+        case 'Password should be at least 6 characters':
           errorMessage = 'Password should be at least 6 characters long.';
           break;
-        case 'auth/operation-not-allowed':
-          errorMessage = 'Email/password accounts are not enabled.';
+        case 'Unable to validate email address: invalid format':
+          errorMessage = 'Please enter a valid email address.';
           break;
         default:
-          errorMessage = 'Registration failed. Please try again.';
+          errorMessage = err.message || 'Registration failed. Please try again.';
       }
       setError(errorMessage);
     } finally {
@@ -104,6 +120,20 @@ const Register = ({ toggleView }) => {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {message && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-green-700">{message}</p>
                   </div>
                 </div>
               </div>

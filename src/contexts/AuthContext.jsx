@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/firebase';
+import { supabase } from '../supabase/supabase';
 
 const AuthContext = createContext();
 
@@ -19,20 +17,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
 
-  // Fetch user data from Firestore
-  const fetchUserData = async (uid) => {
+  // Fetch user profile data from Supabase
+  const fetchUserData = async (userId) => {
     try {
-      const userDocRef = doc(db, 'users', uid);
-      const userDocSnap = await getDoc(userDocRef);
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
       
-      if (userDocSnap.exists()) {
-        setUserData(userDocSnap.data());
-      } else {
-        console.log('No user document found');
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('[AuthContext] Error fetching user data:', error);
         setUserData(null);
+        return;
       }
+      
+      setUserData(data);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('[AuthContext] Error fetching user data:', error);
       setUserData(null);
     }
   };
@@ -45,8 +47,8 @@ export const AuthProvider = ({ children }) => {
 
   // Get display name
   const getDisplayName = () => {
-    if (userData && userData.firstName && userData.lastName) {
-      return `${userData.firstName} ${userData.lastName}`;
+    if (userData && userData.first_name && userData.last_name) {
+      return `${userData.first_name} ${userData.last_name}`;
     }
     if (user && user.email) {
       return user.email;
@@ -56,8 +58,8 @@ export const AuthProvider = ({ children }) => {
 
   // Get welcome message
   const getWelcomeMessage = () => {
-    if (userData && userData.firstName && userData.lastName) {
-      return `, ${userData.firstName} ${userData.lastName}`;
+    if (userData && userData.first_name && userData.last_name) {
+      return `, ${userData.first_name} ${userData.last_name}`;
     }
     if (user && user.email) {
       return `, ${user.email}`;
@@ -75,25 +77,78 @@ export const AuthProvider = ({ children }) => {
     return !!userData;
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
-      
-      if (currentUser) {
-        setUser(currentUser);
-        await fetchUserData(currentUser.uid);
-      } else {
-        clearUserData();
-      }
-      
-      setLoading(false);
-      if (initializing) {
-        setInitializing(false);
-      }
-    });
+  // Check if we're still loading user data specifically
+  const isLoadingUserData = () => {
+    return !!user && !userData && loading;
+  };
 
-    return () => unsubscribe();
-  }, [initializing]);
+  useEffect(() => {
+    
+    let isInitialized = false;
+
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          await fetchUserData(session.user.id);
+        } else {
+          console.log("[AuthContext] No session found");
+        }
+      } catch (error) {
+        console.error("[AuthContext] Error getting initial session:", error);
+      } finally {
+        setLoading(false);
+        setInitializing(false);
+        isInitialized = true;
+      }
+    };
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("[AuthContext] onAuthStateChange event:", event, session?.user?.id);
+
+        // Skip the first SIGNED_IN event during initialization
+        if (!isInitialized && event === 'SIGNED_IN') {
+          return;
+        }
+
+        // Only set loading if we're already initialized
+        if (isInitialized) {
+          setLoading(true);
+        }
+
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            
+            // Only fetch user data if we're initialized
+            if (isInitialized) {
+              await fetchUserData(session.user.id);
+            }
+          } else {
+            clearUserData();
+          }
+        } catch (error) {
+          console.error("[AuthContext] Error handling auth state change:", error);
+        } finally {
+          // Only set loading=false if we're initialized
+          if (isInitialized) {
+            setLoading(false);
+          }
+        }
+      }
+    );
+
+    // Start the initialization
+    getInitialSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const value = {
     // State
@@ -107,6 +162,7 @@ export const AuthProvider = ({ children }) => {
     getWelcomeMessage,
     isAuthenticated,
     isUserDataLoaded,
+    isLoadingUserData,
     fetchUserData,
     clearUserData,
   };

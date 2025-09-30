@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { macroIndicatorsAPI } from '../api/macroIndicators';
+import { macroIndicatorsAPI } from '../../api/macroIndicators';
 
 const MacroIndicatorTile = ({ indicator, title, symbol }) => {
   if (!indicator) return null;

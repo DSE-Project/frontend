@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
+import { supabase } from '../supabase/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
@@ -9,15 +8,18 @@ const Header = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
   return (
+    <header className="bg-blue-600 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
 
-    <header className="bg-blue-800 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold hover:text-blue-200">
           Recession Scope
