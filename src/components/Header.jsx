@@ -19,10 +19,14 @@ const Header = () => {
 
   return (
     <header className="bg-blue-600 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
-
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold hover:text-blue-200">
-          Recession Scope
+        <Link to="/" className="flex items-center space-x-2 text-xl font-bold hover:text-blue-200">
+          <img 
+            src="/logo.png" 
+            alt="RecessionScope Logo" 
+            className="h-8 w-8"
+          />
+          <span>RecessionScope</span>
         </Link>
         
         <nav className="flex items-center space-x-4">
