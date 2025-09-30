@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import IndicatorChart from './IndicatorChart';
 
-function ColumnChart({ dateColumn, valueColumn }) {
+function ColumnChart({ dateColumn, valueColumn, color = '#1d4ed8', showShaded = true }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,7 +40,14 @@ function ColumnChart({ dateColumn, valueColumn }) {
   if (error) return <p className="text-red-500">Error: {error}</p>;
   if (data.length === 0) return <p>No data available for {valueColumn}</p>;
 
-  return <IndicatorChart indicatorName={valueColumn} data={data} />;
+  return (
+    <IndicatorChart
+      indicatorName={valueColumn}
+      data={data}
+      color={color}
+      showShaded={showShaded}
+    />
+  );
 }
 
 export default ColumnChart;

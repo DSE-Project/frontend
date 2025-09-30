@@ -22,7 +22,7 @@ ChartJS.register(
   Filler
 );
 
-export default function IndicatorChart({ indicatorName, data }) {
+export default function IndicatorChart({ indicatorName, data, color = '#1d4ed8', showShaded = true }) {
   if (!data || data.length === 0) return <p>Loading chart...</p>;
 
   const labels = data.map(d => d.date);
@@ -34,18 +34,20 @@ export default function IndicatorChart({ indicatorName, data }) {
       {
         label: indicatorName,
         data: values,
-        borderColor: '#1d4ed8', // darker blue (blue-700)
-        backgroundColor: (context) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 250);
-          gradient.addColorStop(0, 'rgba(29, 78, 216, 0.5)'); // dark blue, 50% opacity
-          gradient.addColorStop(1, 'rgba(29, 78, 216, 0)');   // fade to transparent
-          return gradient;
-        },
-        fill: true,
+        borderColor: color,
+        backgroundColor: showShaded
+          ? (ctx) => {
+              const ctx2 = ctx.chart.ctx;
+              const gradient = ctx2.createLinearGradient(0, 0, 0, 250);
+              gradient.addColorStop(0, `${color}80`); // 50% opacity
+              gradient.addColorStop(1, `${color}00`); // transparent
+              return gradient;
+            }
+          : 'transparent', // no shading
+        fill: showShaded,
         tension: 0.4,
-        pointRadius: 0,          // ❌ no visible points
-        pointHoverRadius: 0,     // ❌ no hover points
+        pointRadius: 0,
+        pointHoverRadius: 0,
       },
     ],
   };
@@ -53,9 +55,7 @@ export default function IndicatorChart({ indicatorName, data }) {
   const options = {
     responsive: true,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       title: {
         display: true,
         text: indicatorName,
@@ -69,30 +69,15 @@ export default function IndicatorChart({ indicatorName, data }) {
         cornerRadius: 8,
         padding: 10,
         displayColors: false,
-        callbacks: {
-          label: (ctx) => `${ctx.parsed.y.toLocaleString()}`,
-        },
+        callbacks: { label: (ctx) => `${ctx.parsed.y.toLocaleString()}` },
       },
     },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#64748b' },
-      },
-      y: {
-        grid: { color: 'rgba(203, 213, 225, 0.2)' },
-        ticks: { color: '#64748b' },
-      },
+      x: { grid: { display: false }, ticks: { color: '#64748b' } },
+      y: { grid: { color: 'rgba(203, 213, 225, 0.2)' }, ticks: { color: '#64748b' } },
     },
-    elements: {
-      point: {
-        radius: 0,
-      },
-    },
-    hover: {
-      mode: 'nearest',
-      intersect: false,
-    },
+    elements: { point: { radius: 0 } },
+    hover: { mode: 'nearest', intersect: false },
   };
 
   return <Line data={chartData} options={options} />;
