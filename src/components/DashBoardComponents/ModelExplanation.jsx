@@ -70,11 +70,16 @@ const ModelExplanation = ({ monthsAhead }) => {
   const getSHAPChartData = () => {
     if (!explanation?.shap_explanation?.shap_values) return [];
     
-    return explanation.shap_explanation.shap_values.map(item => ({
+    // Scale SHAP values to make them more visible
+    const shapData = explanation.shap_explanation.shap_values.map(item => ({
       name: getFeatureName(item.feature),
       importance: item.importance,
-      fullName: item.feature
+      fullName: item.feature,
+      scaledImportance: Math.abs(item.importance) * 1000 // Scale up for visibility
     }));
+    
+    // Sort by absolute importance to show most impactful first
+    return shapData.sort((a, b) => Math.abs(b.importance) - Math.abs(a.importance));
   };
 
   const getELI5ChartData = () => {
@@ -84,7 +89,7 @@ const ModelExplanation = ({ monthsAhead }) => {
       name: getFeatureName(item.feature),
       importance: item.importance,
       fullName: item.feature
-    }));
+    })).sort((a, b) => b.importance - a.importance); // Sort by importance
   };
 
   const CustomTooltip = ({ active, payload }) => {
@@ -93,6 +98,24 @@ const ModelExplanation = ({ monthsAhead }) => {
         <div className="bg-white p-3 border border-gray-200 rounded shadow-lg">
           <p className="font-semibold text-gray-800">{payload[0].payload.name}</p>
           <p className="text-sm text-gray-600">Impact: {formatImportance(payload[0].value)}%</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomSHAPTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded shadow-lg">
+          <p className="font-semibold text-gray-800">{data.name}</p>
+          <p className="text-sm text-gray-600">
+            SHAP Value: {data.importance.toFixed(6)}
+          </p>
+          <p className="text-xs text-gray-500">
+            {data.importance >= 0 ? '↑ Increases' : '↓ Decreases'} recession probability
+          </p>
         </div>
       );
     }
@@ -168,14 +191,31 @@ const ModelExplanation = ({ monthsAhead }) => {
                 </p>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getSHAPChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
+                <BarChart data={getSHAPChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={110} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="importance" radius={[0, 4, 4, 0]}>
+                  <XAxis 
+                    type="number" 
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => (value / 1000).toFixed(3)}
+                    domain={['dataMin', 'dataMax']}
+                  />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    tick={{ fontSize: 11 }} 
+                    width={130}
+                  />
+                  <Tooltip content={<CustomSHAPTooltip />} />
+                  <Bar 
+                    dataKey="scaledImportance" 
+                    radius={[0, 4, 4, 0]}
+                    minPointSize={2}
+                  >
                     {getSHAPChartData().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getBarColor(index)} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.importance >= 0 ? '#10b981' : '#ef4444'}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -193,12 +233,25 @@ const ModelExplanation = ({ monthsAhead }) => {
                 </p>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getELI5ChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
+                <BarChart data={getELI5ChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={110} />
+                  <XAxis 
+                    type="number" 
+                    tick={{ fontSize: 12 }}
+                    domain={['dataMin', 'dataMax']}
+                  />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    tick={{ fontSize: 11 }} 
+                    width={130}
+                  />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="importance" radius={[0, 4, 4, 0]}>
+                  <Bar 
+                    dataKey="importance" 
+                    radius={[0, 4, 4, 0]}
+                    minPointSize={2}
+                  >
                     {getELI5ChartData().map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={getBarColor(index)} />
                     ))}

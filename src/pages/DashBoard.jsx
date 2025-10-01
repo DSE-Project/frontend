@@ -4,7 +4,7 @@ import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
-import ModelExplanation from '../components/DashBoardComponents/ModelExplanation';
+
 // import YearlyRiskChart from '../components/DashBoardComponents/YearlyRiskChart';
 import TopDrivers from '../components/DashBoardComponents/TopDrivers';
 import MacroIndicatorsSnapshot from '../components/DashBoardComponents/MacroIndicatorsSnapshot';
@@ -35,20 +35,7 @@ const Dashboard = () => {
           <ModelPrediction monthsAhead="6" />
         </div>
 
-        {/* Model Explanations - SHAP & ELI5 - 3 columns */}
-        <div className="mt-8">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            📊 Model Explainability (SHAP & ELI5)
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Understand which economic indicators are driving the recession predictions
-          </p>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ModelExplanation monthsAhead="1m" />
-            <ModelExplanation monthsAhead="3m" />
-            <ModelExplanation monthsAhead="6m" />
-          </div>
-        </div>
+
 
 
         {/* <div className="mt-8">
