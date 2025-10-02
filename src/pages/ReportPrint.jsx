@@ -198,7 +198,7 @@ const ReportPrint = () => {
         </section>
 
         {/* Latest Values of the economic indicators */}
-        <section className="mt-4">
+        <section className="mt-">
           <h1 className="text-2xl font-bold mb-4">Latest Economic Data</h1>
           <div className="grid md:grid-cols-1 gap-6">
             <LastTwoRowsCard tableName="historical_data_1m" />
