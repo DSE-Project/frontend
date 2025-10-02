@@ -120,7 +120,7 @@ const CustomSimulation = () => {
     };
 
     try {
-      const response = await fetch(`${API_URL}/forecast/predict/${activeTab}m`, {
+      const response = await fetch(`${API_URL}/simulate/predict/${activeTab}m`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
