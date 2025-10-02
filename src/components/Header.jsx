@@ -24,7 +24,7 @@ const Header = () => {
           <img 
             src="/logo.png" 
             alt="RecessionScope Logo" 
-            className="h-8 w-8"
+            className="h-16 w-18"
           />
           <span>RecessionScope</span>
         </Link>
