@@ -90,6 +90,38 @@ export const AuthProvider = ({ children }) => {
     return !!user && !userData && loading;
   };
 
+  // Robust sign out function
+  const signOut = async () => {
+    try {
+      console.log('[AuthContext] Starting sign out process...');
+      
+      // Clear local state immediately
+      clearUserData();
+      
+      // Try global sign out first
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.warn('[AuthContext] Global sign out error, trying local:', error);
+        // Fallback to local sign out
+        await supabase.auth.signOut({ scope: 'local' });
+      }
+      
+      // Clear any remaining local storage
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.removeItem('supabase.auth.token');
+      
+      console.log('[AuthContext] Sign out completed successfully');
+      return { error: null };
+      
+    } catch (error) {
+      console.error('[AuthContext] Sign out failed:', error);
+      // Even if sign out fails, clear local state
+      clearUserData();
+      return { error };
+    }
+  };
+
   useEffect(() => {
     
     let isInitialized = false;
@@ -173,6 +205,7 @@ export const AuthProvider = ({ children }) => {
     isLoadingUserData,
     fetchUserData,
     clearUserData,
+    signOut,
   };
 
   return (
