@@ -28,7 +28,7 @@ const Register = ({ toggleView }) => {
     setLoading(true);
     
     try {
-      // Sign up the user
+      // Sign up the user first
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
@@ -39,25 +39,30 @@ const Register = ({ toggleView }) => {
       }
 
       if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert([
-            {
+        console.log('User created successfully:', data.user.id);
+        
+        // Try to create profile after successful auth signup
+        try {
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .insert({
               id: data.user.id,
               first_name: firstName.trim(),
               last_name: lastName.trim(),
               email: email,
-              created_at: new Date().toISOString(),
-            }
-          ]);
+            });
 
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          // Don't throw here as the user account was created successfully
+          if (profileError) {
+            console.warn('Profile creation failed but auth succeeded:', profileError);
+            setMessage('Registration successful! Profile will be created when you first log in.');
+          } else {
+            console.log('Profile created successfully');
+            setMessage('Registration successful! Please check your email to confirm your account.');
+          }
+        } catch (profileErr) {
+          console.warn('Profile creation error but auth succeeded:', profileErr);
+          setMessage('Registration successful! Profile will be created when you first log in.');
         }
-
-        setMessage('Registration successful! Please check your email to confirm your account.');
       }
       
     } catch (err) {

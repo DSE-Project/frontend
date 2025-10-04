@@ -32,6 +32,14 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       
+      // If no profile exists, we might need to create one
+      if (!data || !data.id) {
+        console.log('[AuthContext] No user profile found for user:', userId);
+        // You can create a profile here if needed
+        setUserData(null);
+        return;
+      }
+      
       setUserData(data);
     } catch (error) {
       console.error('[AuthContext] Error fetching user data:', error);
