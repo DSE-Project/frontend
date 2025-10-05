@@ -4,16 +4,29 @@ import { supabase } from '../supabase/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
-  const { user, getDisplayName, isAuthenticated } = useAuth();
+  const { user, getDisplayName, isAuthenticated, signOut } = useAuth();
 
   const handleSignOut = async () => {
+    // console.log('Signing out user...');
     try {
-      const { error } = await supabase.auth.signOut();
+      // console.log('Current user before sign out:', user);
+      
+      const { error } = await signOut();
+      
       if (error) {
         console.error('Error signing out:', error);
+        // Even with error, continue with cleanup
+      } else {
+        console.log('User signed out successfully');
       }
+      
+      // Navigate to home page after sign out
+      window.location.href = '/';
+      
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error in handleSignOut:', error);
+      // Last resort: navigate to home to clear everything
+      window.location.href = '/';
     }
   };
 
