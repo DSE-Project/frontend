@@ -4,6 +4,9 @@ import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
+
+// import YearlyRiskChart from '../components/DashBoardComponents/YearlyRiskChart';
+import TopDrivers from '../components/DashBoardComponents/TopDrivers';
 import MacroIndicatorsSnapshot from '../components/DashBoardComponents/MacroIndicatorsSnapshot';
 import EconomicIndicatorsMixed from '../components/EconomicIndicators/EconomicIndicatorsMixed';
 
@@ -29,20 +32,23 @@ const Dashboard = () => {
             <span className="text-sm text-gray-500 ml-2">Loading...</span>
           )}
         </h2>
-        <p data-cy="app-title" className="text-gray-500">
-          Here's your recession risk dashboard.
-        </p>
-
-        <div
-          data-cy="model-prediction"
-          className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <p className="text-gray-500">Here's your recession risk dashboard.</p>
+        
+        {/* Model Predictions - 3 columns */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <ModelPrediction monthsAhead="1" />
           <ModelPrediction monthsAhead="3" />
           <ModelPrediction monthsAhead="6" />
         </div>
 
-        <div data-cy="macro-indicators" className="mt-8">
+
+        <div className="mt-8">
+          <YearlyRiskChart />
+
+        </div> 
+
+        {/* Key Macroeconomic Snapshot */}
+        <div className="mt-8">
           <MacroIndicatorsSnapshot />
         </div>
 

@@ -6,6 +6,8 @@ import SideBar from '../components/SideBar';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 import ColumnChart from '../components/ChartComponents/ColumnChart';
 import LastTwoRowsCard from '../components/ChartComponents/Last_two_data';
+import SaveReportButton from '../components/SaveReportButton';
+
 import { supabase } from '../supabase/supabase'; 
 
 const ReportGeneration = () => {
@@ -78,6 +80,7 @@ const ReportGeneration = () => {
         <div id="pdf-content" className="bg-white p-6 rounded-lg shadow-lg">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
+
             <h1 className="text-3xl font-bold text-gray-800">
               U.S. Recession Forecast: Trends & Insights
             </h1>

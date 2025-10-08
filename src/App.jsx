@@ -8,6 +8,8 @@ import AuthPage from './pages/AuthPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import ReportPrint from './pages/ReportPrint';
 import SentimentDashboard from './pages/SentimentDashboard';
+import UserProfile from './pages/UserProfile';
+import ModelExplainability from './pages/ModelExplainability';
 
 function App() {
   const { user, initializing } = useAuth();
@@ -27,6 +29,8 @@ function App() {
       <Route path="/simulation" element={<ProtectedRoute> <CustomSimulation /> </ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute> <ReportGeneration /> </ProtectedRoute>} />
       <Route path="/sentiment-dashboard" element={<ProtectedRoute> <SentimentDashboard /> </ProtectedRoute>} />
+      <Route path="/model-explainability" element={<ModelExplainability />} />
+      <Route path="/profile" element={<ProtectedRoute> <UserProfile /> </ProtectedRoute>} />
       <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task={'login'} />} />
       <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task={'register'} />} />
       <Route path="/reports-print" element={<ReportPrint />} />
