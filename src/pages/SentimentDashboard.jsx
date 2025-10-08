@@ -19,27 +19,39 @@ import {
 const COLORS = ["#4CAF50", "#FFC107", "#F44336"]; // Positive, Neutral, Negative
 
 const SentimentDashboard = () => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(() => {
+    // ✅ Load cache immediately on first render
+    const cached = localStorage.getItem("sentimentData");
+    const expiry = localStorage.getItem("sentimentData_expiry");
+    if (cached && expiry && Date.now() < Number(expiry)) {
+      console.log("⚡ Using cached data on first render");
+      return JSON.parse(cached);
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState(data ? false : true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
-  const [loading, setLoading] = useState(true);
   const { isCollapsed } = useSidebar();
 
   useEffect(() => {
+    if (data) return; // already have cached data
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/v1/sentiment/reddit-sentiment"
-        );
+        const response = await fetch("http://127.0.0.1:8000/api/v1/sentiment/reddit-sentiment");
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const responseData = await response.json();
+
         if (responseData.total_posts === 0 && responseData.total_comments === 0) {
-          setError(
-            "No data available. The sentiment analysis may not have collected any posts yet."
-          );
+          setError("No data available yet.");
         } else {
           setData(responseData);
+          // ✅ Save cache for 1 hour
+          localStorage.setItem("sentimentData", JSON.stringify(responseData));
+          localStorage.setItem("sentimentData_expiry", (Date.now() + 60*60*1000).toString());
         }
       } catch (err) {
         console.error("Fetch error:", err);
@@ -48,8 +60,9 @@ const SentimentDashboard = () => {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, [data]);
 
   if (loading)
     return (
@@ -90,35 +103,14 @@ const SentimentDashboard = () => {
       </div>
     );
 
+  // --- Data preparation ---
   const sentimentCounts = data?.sentiment_counts || { positive: 0, neutral: 0, negative: 0 };
-  const totalSentiments =
-    sentimentCounts.positive + sentimentCounts.neutral + sentimentCounts.negative;
+  const totalSentiments = sentimentCounts.positive + sentimentCounts.neutral + sentimentCounts.negative;
 
   const sentimentData = [
-    {
-      name: "Positive",
-      value: sentimentCounts.positive,
-      percentage: totalSentiments
-        ? ((sentimentCounts.positive / totalSentiments) * 100).toFixed(1)
-        : 0,
-      color: COLORS[0],
-    },
-    {
-      name: "Neutral",
-      value: sentimentCounts.neutral,
-      percentage: totalSentiments
-        ? ((sentimentCounts.neutral / totalSentiments) * 100).toFixed(1)
-        : 0,
-      color: COLORS[1],
-    },
-    {
-      name: "Negative",
-      value: sentimentCounts.negative,
-      percentage: totalSentiments
-        ? ((sentimentCounts.negative / totalSentiments) * 100).toFixed(1)
-        : 0,
-      color: COLORS[2],
-    },
+    { name: "Positive", value: sentimentCounts.positive, percentage: totalSentiments ? ((sentimentCounts.positive / totalSentiments) * 100).toFixed(1) : 0, color: COLORS[0] },
+    { name: "Neutral", value: sentimentCounts.neutral, percentage: totalSentiments ? ((sentimentCounts.neutral / totalSentiments) * 100).toFixed(1) : 0, color: COLORS[1] },
+    { name: "Negative", value: sentimentCounts.negative, percentage: totalSentiments ? ((sentimentCounts.negative / totalSentiments) * 100).toFixed(1) : 0, color: COLORS[2] },
   ];
 
   const posts = data?.posts || [];
@@ -148,6 +140,7 @@ const SentimentDashboard = () => {
     avgSentiment: day.total ? (day.avgSentiment / day.total).toFixed(2) : 0,
   }));
 
+  // --- Render ---
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
@@ -155,24 +148,16 @@ const SentimentDashboard = () => {
       <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         {/* Page Header */}
         <div className="bg-white rounded-lg p-6 mb-6 shadow-lg">
-          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
-            Reddit Economic Sentiment Dashboard
-          </h1>
-          <p className="text-gray-500 text-center">
-            Real-time analysis of economic discussions across Reddit communities
-          </p>
+          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">Reddit Economic Sentiment Dashboard</h1>
+          <p className="text-gray-500 text-center">Real-time analysis of economic discussions across Reddit communities</p>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Tabs */}
         <div className="flex border-b border-gray-300 mb-6 overflow-x-auto">
           {["overview", "posts", "trends", "summary"].map((tab) => (
             <button
               key={tab}
-              className={`px-4 py-2 font-medium whitespace-nowrap ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              className={`px-4 py-2 font-medium whitespace-nowrap ${activeTab === tab ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
               onClick={() => setActiveTab(tab)}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -204,14 +189,11 @@ const SentimentDashboard = () => {
                   <div className="text-gray-500">Time Range</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg text-center shadow">
-                  <div className="text-2xl font-bold text-pink-600">
-                    {data?.summary?.avg_engagement?.toFixed(2) || 0}
-                  </div>
+                  <div className="text-2xl font-bold text-pink-600">{data?.summary?.avg_engagement?.toFixed(2) || 0}</div>
                   <div className="text-gray-500">Avg Engagement</div>
                 </div>
               </div>
 
-              {/* Sentiment Pie */}
               {totalSentiments > 0 && (
                 <div className="mt-6 h-96">
                   <ResponsiveContainer width="100%" height="100%">
@@ -231,32 +213,13 @@ const SentimentDashboard = () => {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value, name, props) => [
-                          `${value} posts (${props.payload.percentage}%)`,
-                          name,
-                        ]}
-                        contentStyle={{
-                          backgroundColor: "#F9FAFB",
-                          border: "none",
-                          color: "#111827",
-                        }}
+                        formatter={(value, name, props) => [`${value} posts (${props.payload.percentage}%)`, name]}
+                        contentStyle={{ backgroundColor: "#F9FAFB", border: "none", color: "#111827" }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               )}
-
-              {/* Key Highlights */}
-              <div className="bg-gray-50 p-4 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Key Highlights</h3>
-                <ul className="text-gray-600 list-disc list-inside space-y-1">
-                  <li>Total posts collected: {data?.summary?.total_posts}</li>
-                  <li>Total comments received: {data?.summary?.total_comments}</li>
-                  <li>Overall engagement points: {data?.summary?.total_points}</li>
-                  <li>Time span of collected data: {data?.summary?.time_range_days} days</li>
-                  <li>Average engagement per post: {data?.summary?.avg_engagement?.toFixed(2)}</li>
-                </ul>
-              </div>
             </div>
           )}
 
@@ -264,37 +227,19 @@ const SentimentDashboard = () => {
           {activeTab === "posts" && (
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Recent Economic Discussions</h2>
-              {posts.length > 0 ? (
+              {topPosts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {topPosts.map((post, idx) => (
-                    <div
-                      key={idx}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50"
-                    >
-                      <div
-                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
-                          post.sentiment === "positive"
-                            ? "bg-green-100 text-green-800"
-                            : post.sentiment === "negative"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
+                    <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50">
+                      <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
+                        post.sentiment === "positive" ? "bg-green-100 text-green-800" :
+                        post.sentiment === "negative" ? "bg-red-100 text-red-800" :
+                        "bg-yellow-100 text-yellow-800"
+                      }`}>
                         {post.sentiment?.toUpperCase() || "NEUTRAL"}
                       </div>
-                      <a
-                        href={post.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-blue-600 font-medium hover:underline mb-2 text-lg"
-                      >
-                        {post.title}
-                      </a>
-                      {post.content && (
-                        <p className="text-gray-600 mb-3 text-sm">
-                          {post.content.length > 120 ? post.content.substring(0, 120) + "..." : post.content}
-                        </p>
-                      )}
+                      <a href={post.url} target="_blank" rel="noopener noreferrer" className="block text-blue-600 font-medium hover:underline mb-2 text-lg">{post.title}</a>
+                      {post.content && <p className="text-gray-600 mb-3 text-sm">{post.content.length > 120 ? post.content.substring(0, 120) + "..." : post.content}</p>}
                       <div className="flex justify-between items-center text-xs text-gray-500">
                         <span>r/{post.subreddit}</span>
                         <div className="flex space-x-3">
@@ -308,7 +253,7 @@ const SentimentDashboard = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">No posts available for analysis</p>
+                  <p className="text-gray-500">No posts available</p>
                 </div>
               )}
             </div>
@@ -324,31 +269,13 @@ const SentimentDashboard = () => {
                     <AreaChart data={dailyDataArray}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                       <XAxis dataKey="date" stroke="#6B7280" />
-                      <YAxis
-                        stroke="#6B7280"
-                        domain={[-1, 1]}
-                        tickFormatter={(value) =>
-                          value === 1 ? "Positive" : value === -1 ? "Negative" : "Neutral"
-                        }
-                      />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "#F9FAFB", border: "none", color: "#111827" }}
-                        formatter={(value) => {
-                          const sentiment =
-                            value > 0.3 ? "Positive" : value < -0.3 ? "Negative" : "Neutral";
-                          return [`${sentiment} (${value})`, "Average Sentiment"];
-                        }}
-                      />
+                      <YAxis stroke="#6B7280" domain={[-1, 1]} tickFormatter={v => v === 1 ? "Positive" : v === -1 ? "Negative" : "Neutral"} />
+                      <Tooltip contentStyle={{ backgroundColor: "#F9FAFB", border: "none", color: "#111827" }} formatter={value => {
+                        const sentiment = value > 0.3 ? "Positive" : value < -0.3 ? "Negative" : "Neutral";
+                        return [`${sentiment} (${value})`, "Average Sentiment"];
+                      }} />
                       <Legend />
-                      <Area
-                        type="monotone"
-                        dataKey="avgSentiment"
-                        stroke="#3B82F6"
-                        fill="#3B82F6"
-                        fillOpacity={0.3}
-                        name="Average Sentiment"
-                        strokeWidth={2}
-                      />
+                      <Area type="monotone" dataKey="avgSentiment" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} name="Average Sentiment" strokeWidth={2} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

@@ -4,25 +4,42 @@ import { supabase } from '../supabase/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
-  const { user, getDisplayName, isAuthenticated } = useAuth();
+  const { user, getDisplayName, isAuthenticated, signOut } = useAuth();
 
   const handleSignOut = async () => {
+    // console.log('Signing out user...');
     try {
-      const { error } = await supabase.auth.signOut();
+      // console.log('Current user before sign out:', user);
+      
+      const { error } = await signOut();
+      
       if (error) {
         console.error('Error signing out:', error);
+        // Even with error, continue with cleanup
+      } else {
+        console.log('User signed out successfully');
       }
+      
+      // Navigate to home page after sign out
+      window.location.href = '/';
+      
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error in handleSignOut:', error);
+      // Last resort: navigate to home to clear everything
+      window.location.href = '/';
     }
   };
 
   return (
     <header className="bg-blue-600 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
-
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold hover:text-blue-200">
-          Recession Scope
+        <Link to="/" className="flex items-center space-x-2 text-xl font-bold hover:text-blue-200">
+          <img 
+            src="/logo.png" 
+            alt="RecessionScope Logo" 
+            className="h-8 w-8"
+          />
+          <span>RecessionScope</span>
         </Link>
         
         <nav className="flex items-center space-x-4">

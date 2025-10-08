@@ -17,10 +17,16 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
-      <SideBar />
-      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+      <div data-cy="sidebar">
+        <SideBar />
+      </div>
 
-        <h2 className="text-3xl font-bold text-gray-800">
+      <main
+        className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${
+          isCollapsed ? 'ml-16' : 'ml-64'
+        }`}
+      >
+        <h2 data-cy="welcome-message" className="text-3xl font-bold text-gray-800">
           Welcome{getWelcomeMessage()}!
           {(initializing || isLoadingUserData()) && (
             <span className="text-sm text-gray-500 ml-2">Loading...</span>
@@ -36,20 +42,17 @@ const Dashboard = () => {
         </div>
 
 
-
-
-        {/* <div className="mt-8">
+        <div className="mt-8">
           <YearlyRiskChart />
 
-        </div> */}
+        </div> 
 
         {/* Key Macroeconomic Snapshot */}
         <div className="mt-8">
           <MacroIndicatorsSnapshot />
         </div>
 
-        {/* Economic Indicators Charts */}
-        <div className="mt-8">
+        <div data-cy="economic-indicators" className="mt-8">
           <EconomicIndicatorsMixed />
         </div>
       </main>
