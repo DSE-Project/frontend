@@ -61,8 +61,8 @@ const LastTwoRowsCard = ({ tableName }) => {
         <thead>
           <tr className="bg-gray-50">
             <th className="text-left p-2">Indicator</th>
-            <th className="p-2 text-center">{formatDate(prev.observation_date)}</th>
-            <th className="p-2 text-center">{formatDate(latest.observation_date)}</th>
+            <th className="p-2 text-center">Previous month</th>
+            <th className="p-2 text-center">Current month</th>
             <th className="p-2 text-center">Change</th>
           </tr>
         </thead>

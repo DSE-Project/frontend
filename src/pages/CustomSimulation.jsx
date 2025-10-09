@@ -16,8 +16,7 @@ const CustomSimulation = () => {
   const [definitionsLoading, setDefinitionsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
   const { isCollapsed } = useSidebar();
-  const [simulationMode, setSimulationMode] = useState('simple'); // 'simple' or 'advanced'
-
+  const [simulationMode, setSimulationMode] = useState('simple');
   const [formValues, setFormValues] = useState({});
 
   useEffect(() => {
@@ -80,18 +79,17 @@ const CustomSimulation = () => {
     if (!featureDefinitions[activeTab]) return;
     const currentFeatures = featureDefinitions[activeTab];
     const randomValues = {};
-    
-    // Only randomize visible features based on current mode
-    const featuresToRandomize = simulationMode === 'simple' 
-      ? Object.keys(getTopImportantFeatures(currentFeatures))
-      : Object.keys(currentFeatures);
-    
+    const featuresToRandomize =
+      simulationMode === 'simple'
+        ? Object.keys(getTopImportantFeatures(currentFeatures))
+        : Object.keys(currentFeatures);
+
     featuresToRandomize.forEach(key => {
       const { min, max } = currentFeatures[key];
       const randomValue = Math.random() * (max - min) + min;
       randomValues[key] = parseFloat(randomValue.toFixed(2));
     });
-    
+
     setFormValues(prev => ({
       ...prev,
       ...randomValues
@@ -114,7 +112,7 @@ const CustomSimulation = () => {
     const requestData = {
       current_month_data: {
         observation_date: "2025-01-02",
-        ...formValues, // Send ALL features to backend
+        ...formValues,
         recession: 0
       },
       use_historical_data: true,
@@ -148,39 +146,30 @@ const CustomSimulation = () => {
     }
   };
 
-  // Get exactly 6 most important features for simple mode
   const getTopImportantFeatures = (features) => {
-    // First get all important features
     const importantFeatures = Object.entries(features)
-      .filter(([key, feature]) => feature.isImportant);
-    
-    // If we have less than 6 important features, add some non-important ones to make 6
+      .filter(([_, feature]) => feature.isImportant);
+
     let topFeatures = importantFeatures;
     if (importantFeatures.length < 6) {
       const nonImportantFeatures = Object.entries(features)
-        .filter(([key, feature]) => !feature.isImportant)
+        .filter(([_, feature]) => !feature.isImportant)
         .slice(0, 6 - importantFeatures.length);
       topFeatures = [...importantFeatures, ...nonImportantFeatures];
     }
-    
-    // Take exactly 6 features
+
     const exactlySixFeatures = topFeatures.slice(0, 6);
-    
     return exactlySixFeatures.reduce((acc, [key, feature]) => {
       acc[key] = feature;
       return acc;
     }, {});
   };
 
-  // Filter features based on simulation mode (for display only)
   const getFilteredFeatures = () => {
     if (!featureDefinitions[activeTab]) return {};
-    
-    if (simulationMode === 'simple') {
-      return getTopImportantFeatures(featureDefinitions[activeTab]);
-    }
-    
-    return featureDefinitions[activeTab];
+    return simulationMode === 'simple'
+      ? getTopImportantFeatures(featureDefinitions[activeTab])
+      : featureDefinitions[activeTab];
   };
 
   const RadialChart = ({ percentage, isLoading }) => {
@@ -188,7 +177,8 @@ const CustomSimulation = () => {
     const strokeWidth = 12;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
-    const getColor = (pct) => pct < 20 ? '#22c55e' : pct < 50 ? '#f59e0b' : '#ef4444';
+    const getColor = (pct) =>
+      pct < 20 ? '#22c55e' : pct < 50 ? '#f59e0b' : '#ef4444';
 
     return (
       <div className="flex items-center justify-center" data-cy="radial-chart">
@@ -233,7 +223,9 @@ const CustomSimulation = () => {
         <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`} data-cy="auth-required-page">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
-            <Link to="/auth/login" data-cy="login-button" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">Login to Continue</Link>
+            <Link to="/auth/login" data-cy="login-button" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+              Login to Continue
+            </Link>
           </div>
         </main>
       </div>
@@ -271,7 +263,7 @@ const CustomSimulation = () => {
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Error Loading Features</h2>
             <p className="text-gray-600 mb-6">{error}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
@@ -290,6 +282,7 @@ const CustomSimulation = () => {
       <Header />
       <SideBar />
       <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+        {/* Top Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="mb-4 sm:mb-0">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Custom Simulation Tool</h1>
@@ -297,15 +290,12 @@ const CustomSimulation = () => {
               Adjust economic indicators to simulate different scenarios and analyze their impact on recession probability.
             </p>
           </div>
-          
-          {/* Improved Compact Toggle Button */}
+
+          {/* Toggle Mode */}
           <div className="flex items-center space-x-3 bg-white rounded-lg shadow-sm p-3 border border-gray-200">
-            <span className={`text-sm font-medium ${
-              simulationMode === 'simple' ? 'text-blue-600' : 'text-gray-500'
-            }`}>
+            <span className={`text-sm font-medium ${simulationMode === 'simple' ? 'text-blue-600' : 'text-gray-500'}`}>
               Simple
             </span>
-            
             <button
               onClick={() => setSimulationMode(prev => prev === 'simple' ? 'advanced' : 'simple')}
               className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -317,29 +307,9 @@ const CustomSimulation = () => {
                 } shadow-sm`}
               />
             </button>
-            
-            <span className={`text-sm font-medium ${
-              simulationMode === 'advanced' ? 'text-blue-600' : 'text-gray-500'
-            }`}>
+            <span className={`text-sm font-medium ${simulationMode === 'advanced' ? 'text-blue-600' : 'text-gray-500'}`}>
               Advanced
             </span>
-          </div>
-        </div>
-
-        {/* Mode Description */}
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            <div>
-              <p className="text-blue-800 text-sm font-medium">
-                {simulationMode === 'simple' 
-                  ? 'Simple Mode: Showing 6 key economic indicators for quick scenario testing. Switch to Advanced Mode for full control over all features.'
-                  : 'Advanced Mode: Showing all available economic indicators for detailed scenario analysis. Switch to Simple Mode for quick testing with key indicators.'
-                }
-              </p>
-            </div>
           </div>
         </div>
 
@@ -352,7 +322,11 @@ const CustomSimulation = () => {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   data-cy={`tab-${tab}`}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
                 >
                   {tab} Month{tab !== '1' ? 's' : ''} Ahead
                 </button>
@@ -362,14 +336,16 @@ const CustomSimulation = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Panel - Controls */}
+          {/* Left: Feature Controls */}
           <div className="lg:col-span-2">
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
                 <h2 className="text-xl font-semibold text-gray-800">
                   Economic Indicators
                   <span className="ml-2 text-sm font-normal text-gray-500">
-                    {simulationMode === 'simple' ? '6 key features' : `${Object.keys(filteredFeatures).length} total features`}
+                    {simulationMode === 'simple'
+                      ? '6 key features'
+                      : `${Object.keys(filteredFeatures).length} total features`}
                   </span>
                 </h2>
                 <div className="flex space-x-3">
@@ -397,10 +373,13 @@ const CustomSimulation = () => {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <label className="block text-sm font-medium text-gray-700">{feature.name}</label>
-                           
+                            <label className="block text-sm font-medium text-gray-700">
+                              {feature.name}
+                            </label>
                           </div>
-                          <p className="text-xs text-gray-600 leading-relaxed">{feature.description}</p>
+                          <p className="text-xs text-gray-600 leading-relaxed">
+                            {feature.description}
+                          </p>
                         </div>
                         <input
                           type="number"
@@ -449,22 +428,29 @@ const CustomSimulation = () => {
                 )}
               </button>
             </div>
-          ))}
-        </div>
+          </div>
 
-          {/* Right Panel - Results */}
+          {/* Right: Results */}
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-6 text-center">
                 Recession Probability
               </h3>
               <RadialChart percentage={parseFloat(getPredictionValue())} isLoading={loading} />
-              
+
               {error && prediction === null && (
                 <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="flex items-center">
-                    <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 text-red-400 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <p className="text-red-700 text-sm font-medium">{error}</p>
                   </div>
@@ -473,11 +459,13 @@ const CustomSimulation = () => {
 
               {prediction && !loading && (
                 <div className="mt-6 text-center">
-                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border ${
-                    prediction.confidence_interval.binary_prediction === 0
-                      ? 'bg-green-100 text-green-800 border-green-200'
-                      : 'bg-red-100 text-red-800 border-red-200'
-                  }`}>
+                  <div
+                    className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium border ${
+                      prediction.confidence_interval.binary_prediction === 0
+                        ? 'bg-green-100 text-green-800 border-green-200'
+                        : 'bg-red-100 text-red-800 border-red-200'
+                    }`}
+                  >
                     {prediction.confidence_interval.prediction_text}
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
@@ -487,9 +475,11 @@ const CustomSimulation = () => {
               )}
             </div>
 
-            {/* Simulation Info Card */}
+            {/* Simulation Info */}
             <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Simulation Information</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Simulation Information
+              </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Mode:</span>
@@ -499,12 +489,16 @@ const CustomSimulation = () => {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Time Horizon:</span>
-                  <span className="font-medium">{activeTab} Month{activeTab !== '1' ? 's' : ''}</span>
+                  <span className="font-medium">
+                    {activeTab} Month{activeTab !== '1' ? 's' : ''}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Features Used:</span>
                   <span className="font-medium">
-                    {simulationMode === 'simple' ? '6 key features' : `${Object.keys(filteredFeatures).length} total`}
+                    {simulationMode === 'simple'
+                      ? '6 key features'
+                      : `${Object.keys(filteredFeatures).length} total`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
@@ -516,7 +510,7 @@ const CustomSimulation = () => {
               </div>
             </div>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

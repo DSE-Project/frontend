@@ -18,6 +18,7 @@ const ModelExplanation = ({ monthsAhead }) => {
     setError('');
     try {
       const response = await fetch(`${API_URL}/forecast/explain/${monthsAhead}`, {
+        
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
