@@ -24,28 +24,70 @@ const UserProfile = () => {
   // Fetch saved reports
   useEffect(() => {
     if (user) {
-      fetchSavedReports();
+      //fetchSavedReports();
+      fetchUserReportsFromStorage()
     }
   }, [user]);
 
-  const fetchSavedReports = async () => {
-    try {
-      setLoadingReports(true);
-      const { data, error } = await supabase
-        .from('saved_reports')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+  // const fetchSavedReports = async () => {
+  //   try {
+  //     setLoadingReports(true);
+  //     const { data, error } = await supabase
+  //       .from('saved_reports')
+  //       .select('*')
+  //       .eq('user_id', user.id)
+  //       .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setSavedReports(data || []);
-    } catch (error) {
-      console.error('Error fetching saved reports:', error);
-      setMessage({ type: 'error', text: 'Failed to load saved reports' });
-    } finally {
-      setLoadingReports(false);
+  //     if (error) throw error;
+  //     setSavedReports(data || []);
+  //   } catch (error) {
+  //     console.error('Error fetching saved reports:', error);
+  //     setMessage({ type: 'error', text: 'Failed to load saved reports' });
+  //   } finally {
+  //     setLoadingReports(false);
+  //   }
+  // };
+
+
+  // Fetch user reports from Supabase Storage
+const fetchUserReportsFromStorage = async () => {
+  try {
+    setLoadingReports(true);
+
+    // 1️⃣ List all files in the user’s folder inside the bucket
+    const { data: files, error } = await supabase.storage
+      .from("user-reports")
+      .list(user.id + "/", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+
+    if (error) throw error;
+    if (!files || files.length === 0) {
+      setSavedReports([]);
+      return;
     }
-  };
+
+    // 2️⃣ For each file, generate a signed URL (valid 1 hour)
+    const filesWithUrls = await Promise.all(
+      files.map(async (file) => {
+        const { data: signed } = await supabase.storage
+          .from("user-reports")
+          .createSignedUrl(`${user.id}/${file.name}`, 60 * 60);
+        return {
+          name: file.name,
+          created_at: file.created_at,
+          url: signed?.signedUrl,
+        };
+      })
+    );
+
+    setSavedReports(filesWithUrls);
+  } catch (err) {
+    console.error("Error fetching reports from storage:", err);
+    setMessage({ type: "error", text: "Failed to load reports from storage." });
+  } finally {
+    setLoadingReports(false);
+  }
+};
+
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -276,68 +318,48 @@ const UserProfile = () => {
           {/* Saved Reports Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">Saved Reports</h2>
-            
+
             {loadingReports ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-gray-600">Loading reports...</p>
               </div>
             ) : savedReports.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
-                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No saved reports</h3>
-                <p className="text-gray-600">Generate and save your first report to see it here.</p>
+              <div className="text-center py-8 text-gray-600">
+                <p>No uploaded reports found.</p>
+                <p className="text-sm text-gray-500">Generate a report to see it here.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {savedReports.map((report) => (
-                  <div key={report.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {report.title || `Report ${report.id.slice(0, 8)}`}
-                      </h3>
-                      <button
-                        onClick={() => handleDeleteReport(report.id)}
-                        className="text-red-600 hover:text-red-800 ml-2"
-                        title="Delete report"
-                      >
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                    
+                {savedReports.map((file, idx) => (
+                  <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <h3 className="font-semibold text-gray-900 truncate">{file.name}</h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      Type: {report.report_type || 'N/A'}
+                      Uploaded: {formatDate(file.created_at)}
                     </p>
-                    
-                    {report.description && (
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                        {report.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex justify-between items-center text-xs text-gray-500">
-                      <span>Saved: {formatDate(report.created_at)}</span>
-                      {report.report_data && (
-                        <a
-                          href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(report.report_data, null, 2))}`}
-                          download={`report-${report.id}.json`}
-                          className="text-blue-600 hover:text-blue-800 underline"
-                        >
-                          Download
-                        </a>
-                      )}
+                    <div className="flex justify-between items-center">
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline text-sm"
+                      >
+                        View / Download
+                      </a>
+                      <button
+                        onClick={() => handleDeleteFile(file.name)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
+
+          
         </div>
       </div>
     </div>
