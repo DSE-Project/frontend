@@ -428,7 +428,8 @@ const CustomSimulation = () => {
                 )}
               </button>
             </div>
-          </div>
+            </div>
+        </div>
 
           {/* Right: Results */}
           <div className="space-y-6">
@@ -510,7 +511,6 @@ const CustomSimulation = () => {
               </div>
             </div>
           </div>
-        </div>
       </main>
     </div>
   );
