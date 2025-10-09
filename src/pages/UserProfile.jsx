@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../supabase/supabase';
 import Header from '../components/Header';
@@ -10,7 +10,10 @@ const UserProfile = () => {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [savedReports, setSavedReports] = useState([]);
-  const [loadingReports, setLoadingReports] = useState(true);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [reportsLoaded, setReportsLoaded] = useState(false);
+  const [lastFetchedUserId, setLastFetchedUserId] = useState(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // Initialize form data when userData changes
@@ -21,73 +24,64 @@ const UserProfile = () => {
     }
   }, [userData]);
 
-  // Fetch saved reports
-  useEffect(() => {
-    if (user) {
-      //fetchSavedReports();
-      fetchUserReportsFromStorage()
-    }
-  }, [user]);
-
-  // const fetchSavedReports = async () => {
-  //   try {
-  //     setLoadingReports(true);
-  //     const { data, error } = await supabase
-  //       .from('saved_reports')
-  //       .select('*')
-  //       .eq('user_id', user.id)
-  //       .order('created_at', { ascending: false });
-
-  //     if (error) throw error;
-  //     setSavedReports(data || []);
-  //   } catch (error) {
-  //     console.error('Error fetching saved reports:', error);
-  //     setMessage({ type: 'error', text: 'Failed to load saved reports' });
-  //   } finally {
-  //     setLoadingReports(false);
-  //   }
-  // };
-
-
   // Fetch user reports from Supabase Storage
-const fetchUserReportsFromStorage = async () => {
-  try {
-    setLoadingReports(true);
+  const fetchUserReportsFromStorage = useCallback(async () => {
+    // Prevent duplicate requests
+    if (loadingReports) return;
+    
+    try {
+      setLoadingReports(true);
 
-    // 1️⃣ List all files in the user’s folder inside the bucket
-    const { data: files, error } = await supabase.storage
-      .from("user-reports")
-      .list(user.id + "/", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+      // 1️⃣ List all files in the user's folder inside the bucket
+      const { data: files, error } = await supabase.storage
+        .from("user-reports")
+        .list(user.id + "/", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
 
-    if (error) throw error;
-    if (!files || files.length === 0) {
-      setSavedReports([]);
-      return;
+      if (error) throw error;
+      if (!files || files.length === 0) {
+        setSavedReports([]);
+        setReportsLoaded(true);
+        setLastFetchedUserId(user.id);
+        setLastRefreshTime(new Date());
+        return;
+      }
+
+      // 2️⃣ For each file, generate a signed URL (valid 1 hour)
+      const filesWithUrls = await Promise.all(
+        files.map(async (file) => {
+          const { data: signed } = await supabase.storage
+            .from("user-reports")
+            .createSignedUrl(`${user.id}/${file.name}`, 60 * 60);
+          return {
+            name: file.name,
+            created_at: file.created_at,
+            url: signed?.signedUrl,
+          };
+        })
+      );
+
+      setSavedReports(filesWithUrls);
+      setReportsLoaded(true);
+      setLastFetchedUserId(user.id);
+      setLastRefreshTime(new Date());
+    } catch (err) {
+      console.error("Error fetching reports from storage:", err);
+      setMessage({ type: "error", text: "Failed to load reports from storage." });
+    } finally {
+      setLoadingReports(false);
     }
+  }, [user?.id, loadingReports]);
 
-    // 2️⃣ For each file, generate a signed URL (valid 1 hour)
-    const filesWithUrls = await Promise.all(
-      files.map(async (file) => {
-        const { data: signed } = await supabase.storage
-          .from("user-reports")
-          .createSignedUrl(`${user.id}/${file.name}`, 60 * 60);
-        return {
-          name: file.name,
-          created_at: file.created_at,
-          url: signed?.signedUrl,
-        };
-      })
-    );
-
-    setSavedReports(filesWithUrls);
-  } catch (err) {
-    console.error("Error fetching reports from storage:", err);
-    setMessage({ type: "error", text: "Failed to load reports from storage." });
-  } finally {
-    setLoadingReports(false);
-  }
-};
-
+  // Fetch saved reports only when necessary
+  useEffect(() => {
+    // Only fetch if:
+    // 1. User exists
+    // 2. Reports haven't been loaded yet, OR user has changed
+    // 3. Not currently loading
+    if (user && (!reportsLoaded || user.id !== lastFetchedUserId) && !loadingReports) {
+      fetchUserReportsFromStorage();
+    }
+  }, [user, reportsLoaded, lastFetchedUserId, loadingReports, fetchUserReportsFromStorage]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -180,6 +174,12 @@ const fetchUserReportsFromStorage = async () => {
       console.error('Error deleting file:', error);
       setMessage({ type: 'error', text: 'Failed to delete file. Please try again.' });
     }
+  };
+
+  const handleRefreshReports = async () => {
+    setReportsLoaded(false);
+    setLastFetchedUserId(null);
+    await fetchUserReportsFromStorage();
   };
 
   const formatDate = (dateString) => {
@@ -338,9 +338,25 @@ const fetchUserReportsFromStorage = async () => {
 
           {/* Saved Reports Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Saved Reports</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Saved Reports</h2>
+              <div className="flex items-center space-x-4">
+                {lastRefreshTime && (
+                  <span className="text-sm text-gray-500">
+                    Last updated: {formatDate(lastRefreshTime.toISOString())}
+                  </span>
+                )}
+                <button
+                  onClick={handleRefreshReports}
+                  disabled={loadingReports}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors text-sm"
+                >
+                  {loadingReports ? 'Refreshing...' : 'Refresh Reports'}
+                </button>
+              </div>
+            </div>
 
-            {loadingReports ? (
+            {loadingReports && !reportsLoaded ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-gray-600">Loading reports...</p>
@@ -379,8 +395,6 @@ const fetchUserReportsFromStorage = async () => {
               </div>
             )}
           </div>
-
-          
         </div>
       </div>
     </div>
