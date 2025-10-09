@@ -1,10 +1,30 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
   const { user, getDisplayName, isAuthenticated, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const previousLocation = useRef('/dashboard'); // Default fallback location
+
+  // Track previous location for back navigation
+  useEffect(() => {
+    // Only update previous location if we're not on the profile page
+    // This ensures we remember where the user came from before visiting profile
+    if (location.pathname !== '/profile') {
+      previousLocation.current = location.pathname;
+    }
+  }, [location.pathname]);
+
+  // Check if user is currently on profile page
+  const isOnProfilePage = location.pathname === '/profile';
+
+  const handleBackClick = () => {
+    // Navigate back to the previous location
+    navigate(previousLocation.current);
+  };
 
   const handleSignOut = async () => {
     // console.log('Signing out user...');
@@ -45,13 +65,25 @@ const Header = () => {
         <nav className="flex items-center space-x-4">
           {isAuthenticated() ? (
             <div className="flex items-center space-x-4">
-              <span className="text-sm">Welcome, {getDisplayName()}</span>
-              <Link
-                to="/profile"
-                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition-colors text-sm"
-              >
-                Profile
-              </Link>
+              {/* <span className="text-sm">Welcome, {getDisplayName()}</span> */}
+              {isOnProfilePage ? (
+                <button
+                  onClick={handleBackClick}
+                  className="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded transition-colors text-sm flex items-center space-x-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span>Back</span>
+                </button>
+              ) : (
+                <Link
+                  to="/profile"
+                  className="bg-blue-500 hover:bg-blue-800 px-4 py-2 rounded transition-colors"
+                >
+                  Profile
+                </Link>
+              )}
               <button
                 onClick={handleSignOut}
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition-colors"

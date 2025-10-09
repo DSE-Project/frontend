@@ -161,6 +161,27 @@ const fetchUserReportsFromStorage = async () => {
     }
   };
 
+  const handleDeleteFile = async (fileName) => {
+    if (!confirm('Are you sure you want to delete this file?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.storage
+        .from('user-reports')
+        .remove([`${user.id}/${fileName}`]);
+
+      if (error) throw error;
+
+      // Remove the file from the local state
+      setSavedReports(prev => prev.filter(file => file.name !== fileName));
+      setMessage({ type: 'success', text: 'File deleted successfully!' });
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      setMessage({ type: 'error', text: 'Failed to delete file. Please try again.' });
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
