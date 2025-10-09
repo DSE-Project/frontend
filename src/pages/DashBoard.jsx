@@ -6,7 +6,7 @@ import SideBar from '../components/SideBar';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 
 // import YearlyRiskChart from '../components/DashBoardComponents/YearlyRiskChart';
-import TopDrivers from '../components/DashBoardComponents/TopDrivers';
+// import TopDrivers from '../components/DashBoardComponents/TopDrivers';
 import MacroIndicatorsSnapshot from '../components/DashBoardComponents/MacroIndicatorsSnapshot';
 import EconomicIndicatorsMixed from '../components/EconomicIndicators/EconomicIndicatorsMixed';
 
@@ -42,10 +42,10 @@ const Dashboard = () => {
         </div>
 
 
-        <div className="mt-8">
+        {/* <div className="mt-8">
           <YearlyRiskChart />
 
-        </div> 
+        </div>  */}
 
         {/* Key Macroeconomic Snapshot */}
         <div className="mt-8">

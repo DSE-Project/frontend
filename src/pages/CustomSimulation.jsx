@@ -449,7 +449,7 @@ const CustomSimulation = () => {
                 )}
               </button>
             </div>
-          ))}
+            </div>
         </div>
 
           {/* Right Panel - Results */}
@@ -516,7 +516,6 @@ const CustomSimulation = () => {
               </div>
             </div>
           </div>
-        )}
       </main>
     </div>
   );
