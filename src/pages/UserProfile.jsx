@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../supabase/supabase';
+import { userReportsAPI } from '../api/userReports';
 import Header from '../components/Header';
 
 const UserProfile = () => {
@@ -9,8 +9,8 @@ const UserProfile = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [savedReports, setSavedReports] = useState([]);
-  const [loadingReports, setLoadingReports] = useState(true);
+  const [pdfReports, setPdfReports] = useState([]);
+  const [loadingPdfReports, setLoadingPdfReports] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   // Initialize form data when userData changes
@@ -21,29 +21,29 @@ const UserProfile = () => {
     }
   }, [userData]);
 
-  // Fetch saved reports
+  // Fetch PDF reports
   useEffect(() => {
     if (user) {
-      fetchSavedReports();
+      fetchPdfReports();
     }
   }, [user]);
 
-  const fetchSavedReports = async () => {
+  const fetchPdfReports = async () => {
     try {
-      setLoadingReports(true);
-      const { data, error } = await supabase
-        .from('saved_reports')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setSavedReports(data || []);
+      setLoadingPdfReports(true);
+      const result = await userReportsAPI.getUserPDFReports(user.id);
+      
+      if (result.success) {
+        setPdfReports(result.data || []);
+      } else {
+        console.error('Error fetching PDF reports:', result.error);
+        setMessage({ type: 'error', text: 'Failed to load PDF reports' });
+      }
     } catch (error) {
-      console.error('Error fetching saved reports:', error);
-      setMessage({ type: 'error', text: 'Failed to load saved reports' });
+      console.error('Error fetching PDF reports:', error);
+      setMessage({ type: 'error', text: 'Failed to load PDF reports' });
     } finally {
-      setLoadingReports(false);
+      setLoadingPdfReports(false);
     }
   };
 
@@ -97,25 +97,51 @@ const UserProfile = () => {
     }
   };
 
-  const handleDeleteReport = async (reportId) => {
-    if (!confirm('Are you sure you want to delete this report?')) {
+  const handleDownloadPdfReport = async (fileName) => {
+    try {
+      const result = await userReportsAPI.downloadReport(user.id, fileName);
+      if (!result.success) {
+        setMessage({ type: 'error', text: 'Failed to download report: ' + result.error });
+      }
+    } catch (error) {
+      console.error('Error downloading PDF report:', error);
+      setMessage({ type: 'error', text: 'Failed to download report. Please try again.' });
+    }
+  };
+
+  const handleDeletePdfReport = async (fileName) => {
+    if (!confirm('Are you sure you want to delete this PDF report?')) {
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('saved_reports')
-        .delete()
-        .eq('id', reportId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setSavedReports(prev => prev.filter(report => report.id !== reportId));
-      setMessage({ type: 'success', text: 'Report deleted successfully!' });
+      const result = await userReportsAPI.deleteReport(user.id, fileName);
+      
+      if (result.success) {
+        setPdfReports(prev => prev.filter(report => report.name !== fileName));
+        setMessage({ type: 'success', text: 'PDF report deleted successfully!' });
+      } else {
+        setMessage({ type: 'error', text: 'Failed to delete PDF report: ' + result.error });
+      }
     } catch (error) {
-      console.error('Error deleting report:', error);
-      setMessage({ type: 'error', text: 'Failed to delete report. Please try again.' });
+      console.error('Error deleting PDF report:', error);
+      setMessage({ type: 'error', text: 'Failed to delete PDF report. Please try again.' });
+    }
+  };
+
+  const handleViewPdfReport = async (fileName) => {
+    try {
+      const result = await userReportsAPI.getReportDownloadUrl(user.id, fileName);
+      
+      if (result.success && result.downloadUrl) {
+        // Open PDF in a new tab for viewing
+        window.open(result.downloadUrl, '_blank');
+      } else {
+        setMessage({ type: 'error', text: 'Failed to view report: ' + result.error });
+      }
+    } catch (error) {
+      console.error('Error viewing PDF report:', error);
+      setMessage({ type: 'error', text: 'Failed to view report. Please try again.' });
     }
   };
 
@@ -259,8 +285,8 @@ const UserProfile = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Saved reports:</span>
-                    <span className="text-gray-900">{savedReports.length}</span>
+                    <span className="text-gray-700">Generated reports:</span>
+                    <span className="text-gray-900 font-semibold">{pdfReports.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-700">Last login:</span>
@@ -273,65 +299,97 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Saved Reports Section */}
+          {/* PDF Reports Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Saved Reports</h2>
-            
-            {loadingReports ? (
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">My Reports</h2>
+              <div className="text-sm text-gray-500">
+                {pdfReports.length} PDF reports
+              </div>
+            </div>
+
+            {loadingPdfReports ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Loading reports...</p>
+                <p className="mt-2 text-gray-600">Loading PDF reports...</p>
               </div>
-            ) : savedReports.length === 0 ? (
+            ) : pdfReports.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-gray-400 mb-4">
                   <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No saved reports</h3>
-                <p className="text-gray-600">Generate and save your first report to see it here.</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No PDF reports yet</h3>
+                <p className="text-gray-600">Go to the Report Generation page to create your first PDF report.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {savedReports.map((report) => (
-                  <div key={report.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                {pdfReports.map((report, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {report.title || `Report ${report.id.slice(0, 8)}`}
-                      </h3>
-                      <button
-                        onClick={() => handleDeleteReport(report.id)}
-                        className="text-red-600 hover:text-red-800 ml-2"
-                        title="Delete report"
-                      >
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <div className="flex items-center">
+                        <svg className="h-8 w-8 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                         </svg>
-                      </button>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 text-sm">
+                            {userReportsAPI.extractDateFromFileName(report.name)}
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {userReportsAPI.formatFileSize(report.size)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => handleViewPdfReport(report.name)}
+                          className="text-blue-600 hover:text-blue-800 p-1"
+                          title="View PDF"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDownloadPdfReport(report.name)}
+                          className="text-green-600 hover:text-green-800 p-1"
+                          title="Download PDF"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeletePdfReport(report.name)}
+                          className="text-red-600 hover:text-red-800 p-1"
+                          title="Delete PDF"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     
                     <p className="text-sm text-gray-600 mb-2">
-                      Type: {report.report_type || 'N/A'}
+                      Created: {report.created_at ? formatDate(report.created_at) : 'N/A'}
                     </p>
                     
-                    {report.description && (
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
-                        {report.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex justify-between items-center text-xs text-gray-500">
-                      <span>Saved: {formatDate(report.created_at)}</span>
-                      {report.report_data && (
-                        <a
-                          href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(report.report_data, null, 2))}`}
-                          download={`report-${report.id}.json`}
-                          className="text-blue-600 hover:text-blue-800 underline"
-                        >
-                          Download
-                        </a>
-                      )}
+                    <div className="mt-3 flex space-x-2">
+                      <button
+                        onClick={() => handleViewPdfReport(report.name)}
+                        className="flex-1 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded text-sm font-medium transition-colors"
+                      >
+                        View Report
+                      </button>
+                      <button
+                        onClick={() => handleDownloadPdfReport(report.name)}
+                        className="flex-1 bg-green-50 text-green-700 hover:bg-green-100 px-3 py-2 rounded text-sm font-medium transition-colors"
+                      >
+                        Download
+                      </button>
                     </div>
                   </div>
                 ))}
