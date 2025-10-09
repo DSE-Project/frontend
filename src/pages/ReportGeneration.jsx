@@ -7,6 +7,10 @@ import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 import ColumnChart from '../components/ChartComponents/ColumnChart';
 import LastTwoRowsCard from '../components/ChartComponents/Last_two_data';
 import SaveReportButton from '../components/SaveReportButton';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+//toast.configure();
 
 import { supabase } from '../supabase/supabase'; 
 
@@ -62,10 +66,16 @@ const ReportGeneration = () => {
     if (uploadError) throw uploadError;
 
     console.log("✅ Uploaded to Supabase:", uploadData);
-    alert("Report uploaded successfully!");
+    toast.success("Report uploaded successfully!", {
+      position: "top-right",
+      autoClose: 3000,
+    });
   } catch (err) {
     console.error("❌ Upload failed:", err);
-    alert("Upload failed: " + err.message);
+    toast.error(`Upload failed: ${err.message}`, {
+      position: "top-right",
+      autoClose: 3000,
+    });
   } finally {
     setIsDownloading(false);
   }
