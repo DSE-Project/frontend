@@ -9,6 +9,7 @@ import LastTwoRowsCard from '../components/ChartComponents/Last_two_data';
 import SaveReportButton from '../components/SaveReportButton';
 
 import { supabase } from '../supabase/supabase'; 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ReportGeneration = () => {
   const { user, isAuthenticated } = useAuth();
@@ -36,7 +37,7 @@ const ReportGeneration = () => {
     console.log("Completed 0 -----------------------------------")
     const reportUrl = encodeURIComponent("http://localhost:5173/reports-print");
     const response = await fetch(
-      `http://localhost:8000/generate-report?url=${reportUrl}&filename=recession_report.pdf`
+      `${API_URL}/generate-report?url=${reportUrl}&filename=recession_report.pdf`
     );
 
     if (!response.ok) throw new Error("Failed to generate PDF");

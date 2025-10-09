@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import IndicatorChart from './IndicatorChart';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 function ColumnChart({ dateColumn, valueColumn, color = '#1d4ed8', showShaded = true }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +13,7 @@ function ColumnChart({ dateColumn, valueColumn, color = '#1d4ed8', showShaded = 
     setLoading(true);
     setError(null);
 
-    fetch('http://localhost:8000/api/v1/economic/csv')
+    fetch(`${API_URL}/economic/csv`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch CSV');
         return res.text();
