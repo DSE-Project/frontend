@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const LastTwoRowsCard = ({ tableName }) => {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/last-two/${tableName}`)
+    fetch(`${API_URL}/last-two/${tableName}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch data");
         return res.json();

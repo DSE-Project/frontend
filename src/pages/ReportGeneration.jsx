@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 //toast.configure();
 
 import { supabase } from '../supabase/supabase'; 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ReportGeneration = () => {
   const { user, isAuthenticated } = useAuth();
@@ -28,42 +29,43 @@ const ReportGeneration = () => {
   };
 
   const handleDownloadPdf = async () => {
-  if (!user) {
-    alert("Please log in to download the report.");
-    return;
-  }
+    if (!user) {
+      alert("Please log in to download the report.");
+      return;
+    }
 
-  setIsDownloading(true);
+    setIsDownloading(true);
 
-  try {
-    // 1️⃣ Generate PDF from backend
-    console.log("Completed 0 -----------------------------------")
-    const reportUrl = encodeURIComponent("http://localhost:5173/reports-print");
-    const response = await fetch(
-      `http://localhost:8000/generate-report?url=${reportUrl}&filename=recession_report.pdf`
-    );
+    try {
+      // 1️⃣ Generate PDF from backend
+      const reportUrl = encodeURIComponent("http://localhost:5173/reports-print");
+      const response = await fetch(
+        `${API_URL}/generate-report?url=${reportUrl}&filename=recession_report.pdf`
+      );
+      console.log("Completed Generating PDF from backend")
 
-    if (!response.ok) throw new Error("Failed to generate PDF");
+      if (!response.ok) throw new Error("Failed to generate PDF");
 
-    const blob = await response.blob();
-    console.log("Completed 1 -----------------------------------")
+      const blob = await response.blob();
+      console.log("Completed blob from response")
 
-    // 2️⃣ Generate timestamped filename
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const fileName = `recession_report_${timestamp}.pdf`;
+      // 2️⃣ Generate timestamped filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      console.log("Generated timestamp:", timestamp);
+      const fileName = `recession_report_${timestamp}.pdf`;
+      console.log("Generated filename:", fileName);
 
-    // 3️⃣ Upload directly using user.id (matches auth.uid())
-    const file = new File([blob], fileName, { type: "application/pdf" });
-    console.log("Completed 2 -----------------------------------")
+      // 3️⃣ Upload directly using user.id (matches auth.uid())
+      const file = new File([blob], fileName, { type: "application/pdf" });
+      console.log("Created file object:", file);
+      const { data: uploadData, error: uploadError } = await supabase.storage.from("user-reports").upload(`${user.id}/${fileName}`, file, { upsert: false });
+      
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("user-reports")
-    .upload(`${user.id}/${fileName}`, file, { upsert: false });
 
-    console.log("🔹 user.id (auth.uid):", user.id);
-    console.log("🔹 Upload path:", `${user.id}/${fileName}`);
+      console.log("🔹 user.id (auth.uid):", user.id);
+      console.log("🔹 Upload path:", `${user.id}/${fileName}`);
 
-    if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
     console.log("✅ Uploaded to Supabase:", uploadData);
     toast.success("Report uploaded successfully!", {
