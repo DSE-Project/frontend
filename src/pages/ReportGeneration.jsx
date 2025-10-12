@@ -17,7 +17,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ReportGeneration = () => {
   const { user, isAuthenticated } = useAuth();
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
   const [isDownloading, setIsDownloading] = useState(false);
   const [results, setResults] = useState({});
 
@@ -88,18 +88,30 @@ const ReportGeneration = () => {
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
-        <div id="pdf-content" className="bg-white p-6 rounded-lg shadow-lg">
+      <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+        isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
+        {isMobile && (
+          <button
+            onClick={toggleSidebar}
+            className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <div id="pdf-content" className="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-
-            <h1 className="text-3xl font-bold text-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">
               U.S. Recession Forecast: Trends & Insights
             </h1>
             <button
               onClick={handleDownloadPdf}
               disabled={isDownloading}
-              className={`bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium
+              className={`bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm sm:text-base whitespace-nowrap
                 ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
@@ -108,14 +120,14 @@ const ReportGeneration = () => {
 
         
           {/* Intro Text */}
-          <p className="text-gray-600 mb-6">Economic Indicators and Predictive Analysis</p>
-          <p>
+          <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Economic Indicators and Predictive Analysis</p>
+          <p className="text-sm sm:text-base mb-6">
             This report presents a forecast of potential U.S. recessions over the next 1 month, 3 months, and 6 months, 
             using key economic indicators and predictive modeling.
           </p>
 
           {/* Model Predictions */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <ModelPrediction monthsAhead="1" onResult={handleResult} />
             <ModelPrediction monthsAhead="3" onResult={handleResult} />
             <ModelPrediction monthsAhead="6" onResult={handleResult} />

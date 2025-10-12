@@ -6,7 +6,7 @@ import { useSidebar } from '../contexts/SidebarContext';
 const SideBar = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const { isCollapsed, toggleSidebar } = useSidebar();
+  const { isCollapsed, toggleSidebar, isMobile, isMobileMenuOpen, closeMobileSidebar } = useSidebar();
 
   const menuItems = [
     {
@@ -65,22 +65,40 @@ const SideBar = () => {
   const handleItemClick = (e, item) => {
     if (item.requiresAuth && !isAuthenticated()) {
       e.preventDefault();
+    } else if (isMobile) {
+      // Close mobile sidebar when item is clicked
+      closeMobileSidebar();
     }
   };
 
   return (
     <>
-      <div className={`bg-white shadow-lg h-full fixed left-0 top-16 bottom-0 z-40 transition-all duration-500 ${
-        isCollapsed ? 'w-16' : 'w-64'
+      {/* Mobile Backdrop */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`bg-white shadow-lg h-full fixed left-0 top-16 bottom-0 z-40 transition-all duration-300 ${
+        isMobile 
+          ? `w-64 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}` 
+          : isCollapsed 
+            ? 'w-16' 
+            : 'w-64'
       }`}>
-        {/* Toggle Button */}
+        {/* Toggle Button - Hidden on mobile */}
         <button
           onClick={toggleSidebar}
-          className="absolute -right-3 top-5 bg-white shadow-md rounded-full p-1.5 hover:bg-gray-50 transition-colors duration-200 z-50"
+          className={`absolute -right-3 top-5 bg-white shadow-md rounded-full p-1.5 hover:bg-gray-50 transition-colors duration-200 z-50 ${
+            isMobile ? 'hidden' : 'block'
+          }`}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <svg 
-            className={`w-4 h-4 text-gray-600 transition-transform duration-500 ${
+            className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${
               isCollapsed ? 'rotate-180' : ''
             }`} 
             fill="none" 
@@ -99,8 +117,8 @@ const SideBar = () => {
         <nav className="mt-8">
           {/* Navigation title with smooth transition */}
           <div className="px-4">
-            <h2 className={`text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 transition-all duration-500 ${
-              isCollapsed ? 'opacity-0 invisible' : 'opacity-100 visible'
+            <h2 className={`text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 transition-all duration-300 ${
+              (isCollapsed && !isMobile) ? 'opacity-0 invisible' : 'opacity-100 visible'
             }`}>
               Navigation
             </h2>
@@ -117,40 +135,43 @@ const SideBar = () => {
                   {isAccessible ? (
                     <Link
                       to={item.path}
-                      className={`flex items-center ${isCollapsed ? 'px-4 justify-center' : 'px-6'} py-3 text-sm font-medium transition-all duration-500 ${
+                      onClick={(e) => handleItemClick(e, item)}
+                      className={`flex items-center ${(isCollapsed && !isMobile) ? 'px-4 justify-center' : 'px-6'} py-3 text-sm font-medium transition-all duration-300 ${
                         isActive
                           ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
-                      title={isCollapsed ? item.name : ''}
+                      title={(isCollapsed && !isMobile) ? item.name : ''}
                     >
-                      <span className={`${isCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-700' : 'text-gray-400'} transition-all duration-500`}>
+                      <span className={`${(isCollapsed && !isMobile) ? '' : 'mr-3'} ${isActive ? 'text-blue-700' : 'text-gray-400'} transition-all duration-300`}>
                         {item.icon}
                       </span>
-                      <span className={`transition-all duration-500 ${
-                        isCollapsed ? 'opacity-0 invisible w-0' : 'opacity-100 visible w-auto'
+                      <span className={`transition-all duration-300 ${
+                        (isCollapsed && !isMobile) ? 'opacity-0 invisible w-0' : 'opacity-100 visible w-auto'
                       }`}>
                         {item.name}
                       </span>
                     </Link>
                   ) : (
                     <div
-                      className={`flex items-center ${isCollapsed ? 'px-4 justify-center' : 'px-6'} py-3 text-sm font-medium cursor-not-allowed text-gray-400 transition-all duration-500`}
+                      className={`flex items-center ${(isCollapsed && !isMobile) ? 'px-4 justify-center' : 'px-6'} py-3 text-sm font-medium cursor-not-allowed text-gray-400 transition-all duration-300`}
                       onClick={(e) => handleItemClick(e, item)}
-                      title={isCollapsed ? `${item.name} - Please login to access` : ''}
+                      title={(isCollapsed && !isMobile) ? `${item.name} - Please login to access` : ''}
                     >
-                      <span className={`${isCollapsed ? '' : 'mr-3'} text-gray-300 transition-all duration-500`}>
+                      <span className={`${(isCollapsed && !isMobile) ? '' : 'mr-3'} text-gray-300 transition-all duration-300`}>
                         {item.icon}
                       </span>
-                      <span className={`transition-all duration-500 ${
-                        isCollapsed ? 'opacity-0 invisible w-0' : 'opacity-100 visible w-auto'
+                      <span className={`transition-all duration-300 ${
+                        (isCollapsed && !isMobile) ? 'opacity-0 invisible w-0' : 'opacity-100 visible w-auto'
                       }`}>
                         <span className="text-gray-400">{item.name}</span>
-                        {/* Tooltip */}
-                        <div className="absolute left-full ml-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50">
-                          Please login to use {item.name}
-                          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-800"></div>
-                        </div>
+                        {/* Tooltip - Only show on desktop collapsed mode */}
+                        {(isCollapsed && !isMobile) && (
+                          <div className="absolute left-full ml-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50">
+                            Please login to use {item.name}
+                            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 border-4 border-transparent border-r-gray-800"></div>
+                          </div>
+                        )}
                       </span>
                     </div>
                   )}

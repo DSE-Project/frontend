@@ -7,7 +7,7 @@ const ModelExplanation = ({ monthsAhead }) => {
   const [explanation, setExplanation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('shap'); // 'shap' or 'eli5'
+  const [activeTab, setActiveTab] = useState('shap'); // 'shap' or 'permutation'
 
   useEffect(() => {
     fetchExplanation();
@@ -83,10 +83,10 @@ const ModelExplanation = ({ monthsAhead }) => {
     return shapData.sort((a, b) => Math.abs(b.importance) - Math.abs(a.importance));
   };
 
-  const getELI5ChartData = () => {
-    if (!explanation?.eli5_explanation?.feature_importance) return [];
+  const getPermutationChartData = () => {
+    if (!explanation?.permutation_importance?.feature_importance) return [];
     
-    return explanation.eli5_explanation.feature_importance.map(item => ({
+    return explanation.permutation_importance.feature_importance.map(item => ({
       name: getFeatureName(item.feature),
       importance: item.importance,
       fullName: item.feature
@@ -156,14 +156,14 @@ const ModelExplanation = ({ monthsAhead }) => {
           SHAP Values
         </button>
         <button
-          onClick={() => setActiveTab('eli5')}
+          onClick={() => setActiveTab('permutation')}
           className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === 'eli5'
+            activeTab === 'permutation'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Feature Importance
+          Permutation Importance
         </button>
       </div>
 
@@ -224,8 +224,8 @@ const ModelExplanation = ({ monthsAhead }) => {
             </div>
           )}
 
-          {/* ELI5 Tab */}
-          {activeTab === 'eli5' && (
+          {/* Permutation Importance Tab */}
+          {activeTab === 'permutation' && (
             <div>
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-gray-700 mb-1">Permutation Feature Importance</h4>
@@ -234,7 +234,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                 </p>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getELI5ChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <BarChart data={getPermutationChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     type="number" 
@@ -253,7 +253,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                     radius={[0, 4, 4, 0]}
                     minPointSize={2}
                   >
-                    {getELI5ChartData().map((entry, index) => (
+                    {getPermutationChartData().map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={getBarColor(index)} />
                     ))}
                   </Bar>
@@ -264,7 +264,7 @@ const ModelExplanation = ({ monthsAhead }) => {
               <div className="mt-4 bg-gray-50 p-4 rounded-lg">
                 <h5 className="text-sm font-semibold text-gray-700 mb-2">Top 3 Drivers</h5>
                 <div className="space-y-2">
-                  {getELI5ChartData().slice(0, 3).map((item, idx) => (
+                  {getPermutationChartData().slice(0, 3).map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <span className="text-sm text-gray-700 flex items-center">
                         <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center mr-2">
@@ -291,7 +291,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                 Total Features Analyzed: {
                   activeTab === 'shap' 
                     ? explanation.shap_explanation?.feature_count 
-                    : explanation.eli5_explanation?.total_features
+                    : explanation.permutation_importance?.total_features
                 }
               </p>
             </div>

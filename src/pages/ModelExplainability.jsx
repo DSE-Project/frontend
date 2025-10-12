@@ -8,44 +8,57 @@ import CompactPredictionsDisplay from '../components/DashBoardComponents/Compact
 
 const ModelExplainability = () => {
   const { getWelcomeMessage, isLoadingUserData, initializing } = useAuth();
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+      <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+        isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
+        {isMobile && (
+          <button
+            onClick={toggleSidebar}
+            className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            📊 Model Explainability (SHAP & ELI5)
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">
+            📊 Model Explainability (SHAP & Permutation Importance)
           </h2>
-          <p className="text-gray-600 text-lg">
-            Understand which economic indicators are driving the recession predictions using advanced AI explainability techniques.
+          <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
+            Understand which economic indicators are driving the recession predictions using SHAP values and permutation feature importance analysis.
           </p>
         </div>
 
         {/* Compact Predictions Display */}
         <CompactPredictionsDisplay />
 
-        {/* Model Explanations Grid - 3 columns for different time horizons */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow-lg p-4 border-t-4 border-green-500">
+        {/* Model Explanations Grid - Responsive layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 border-t-4 border-green-500">
             <div className="flex items-center mb-3">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <h3 className="text-md font-semibold text-gray-800">1-Month Explainability</h3>
+              <h3 className="text-sm sm:text-md font-semibold text-gray-800">1-Month Explainability</h3>
             </div>
             <ModelExplanation monthsAhead="1m" />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4 border-t-4 border-yellow-500">
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 border-t-4 border-yellow-500">
             <div className="flex items-center mb-3">
               <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-              <h3 className="text-md font-semibold text-gray-800">3-Month Explainability</h3>
+              <h3 className="text-sm sm:text-md font-semibold text-gray-800">3-Month Explainability</h3>
             </div>
             <ModelExplanation monthsAhead="3m" />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4 border-t-4 border-red-500">
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 border-t-4 border-red-500">
             <div className="flex items-center mb-3">
               <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
               <h3 className="text-md font-semibold text-gray-800">6-Month Explainability</h3>
@@ -83,7 +96,7 @@ const ModelExplainability = () => {
               <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
-              About Feature Importance
+              About Permutation Importance
             </h3>
             <div className="space-y-3 text-sm text-gray-600">
               <p>
