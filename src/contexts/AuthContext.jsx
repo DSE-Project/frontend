@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabase/supabase';
 
 const AuthContext = createContext();
@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }) => {
     setUserData(null);
   };
 
-  // Get display name
-  const getDisplayName = () => {
+  // Get display name - memoized with useCallback
+  const getDisplayName = useCallback(() => {
     if (userData && userData.first_name && userData.last_name) {
       return `${userData.first_name} ${userData.last_name}`;
     }
@@ -62,10 +62,10 @@ export const AuthProvider = ({ children }) => {
       return user.email;
     }
     return 'Guest';
-  };
+  }, [userData, user]);
 
-  // Get welcome message
-  const getWelcomeMessage = () => {
+  // Get welcome message - memoized with useCallback
+  const getWelcomeMessage = useCallback(() => {
     if (userData && userData.first_name && userData.last_name) {
       return `, ${userData.first_name} ${userData.last_name}`;
     }
@@ -73,25 +73,25 @@ export const AuthProvider = ({ children }) => {
       return `, ${user.email}`;
     }
     return '';
-  };
+  }, [userData, user]);
 
-  // Check if user is authenticated
-  const isAuthenticated = () => {
+  // Check if user is authenticated - memoized with useCallback
+  const isAuthenticated = useCallback(() => {
     return !!user;
-  };
+  }, [user]);
 
-  // Check if user data is loaded
-  const isUserDataLoaded = () => {
+  // Check if user data is loaded - memoized with useCallback
+  const isUserDataLoaded = useCallback(() => {
     return !!userData;
-  };
+  }, [userData]);
 
-  // Check if we're still loading user data specifically
-  const isLoadingUserData = () => {
+  // Check if we're still loading user data specifically - memoized with useCallback
+  const isLoadingUserData = useCallback(() => {
     return !!user && !userData && loading;
-  };
+  }, [user, userData, loading]);
 
-  // Robust sign out function
-  const signOut = async () => {
+  // Robust sign out function - memoized with useCallback
+  const signOut = useCallback(async () => {
     try {
       console.log('[AuthContext] Starting sign out process...');
       
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
       clearUserData();
       return { error };
     }
-  };
+  }, []); // No dependencies as clearUserData is defined inside this component
 
   useEffect(() => {
     
@@ -190,7 +190,8 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     // State
     user,
     userData,
@@ -206,7 +207,18 @@ export const AuthProvider = ({ children }) => {
     fetchUserData,
     clearUserData,
     signOut,
-  };
+  }), [
+    user,
+    userData,
+    loading,
+    initializing,
+    getDisplayName,
+    getWelcomeMessage,
+    isAuthenticated,
+    isUserDataLoaded,
+    isLoadingUserData,
+    signOut
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

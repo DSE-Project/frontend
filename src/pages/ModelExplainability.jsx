@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
@@ -7,7 +7,7 @@ import ModelExplanation from '../components/DashBoardComponents/ModelExplanation
 import CompactPredictionsDisplay from '../components/DashBoardComponents/CompactPredictionsDisplay';
 
 const ModelExplainability = () => {
-  const { getWelcomeMessage, isLoadingUserData, initializing } = useAuth();
+  // const { getWelcomeMessage, isLoadingUserData, initializing } = useAuth();
   const { isCollapsed } = useSidebar();
 
   return (
@@ -17,7 +17,7 @@ const ModelExplainability = () => {
       <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            📊 Model Explainability (SHAP & ELI5)
+            📊 Model Explainability (SHAP values & Feature Importance)
           </h2>
           <p className="text-gray-600 text-lg">
             Understand which economic indicators are driving the recession predictions using advanced AI explainability techniques.

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
@@ -21,12 +21,13 @@ const ReportGeneration = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [results, setResults] = useState({});
 
-  const handleResult = (monthsAhead, probability, targetDate, rawPrediction) => {
+  // Memoize handleResult to prevent infinite loop
+  const handleResult = useCallback((monthsAhead, probability, targetDate, rawPrediction) => {
     setResults(prev => ({
       ...prev,
       [monthsAhead]: { probability, targetDate, raw: rawPrediction },
     }));
-  };
+  }, []); // Empty dependency array since it only uses setResults which is stable
 
   const handleDownloadPdf = async () => {
     if (!user) {
