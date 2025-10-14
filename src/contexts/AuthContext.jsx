@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
           setUser(session.user);
           await fetchUserData(session.user.id);
         } else {
-          console.log("[AuthContext] No session found");
+          console.log("[AuthContext] No session found", error);
         }
       } catch (error) {
         console.error("[AuthContext] Error getting initial session:", error);
