@@ -1,11 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-/**
- * Custom hook for caching API data with time-based invalidation
- * @param {Function} fetchFunction - The async function to fetch data
- * @param {string} cacheKey - Unique key for this cache entry
- * @param {number} cacheTime - Time in milliseconds to cache data (default: 5 minutes)
- */
 export const useDataCache = (fetchFunction, cacheKey, cacheTime = 5 * 60 * 1000) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
