@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
@@ -21,12 +21,13 @@ const ReportGeneration = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [results, setResults] = useState({});
 
-  const handleResult = (monthsAhead, probability, targetDate, rawPrediction) => {
+  // Memoize handleResult to prevent infinite loop
+  const handleResult = useCallback((monthsAhead, probability, targetDate, rawPrediction) => {
     setResults(prev => ({
       ...prev,
       [monthsAhead]: { probability, targetDate, raw: rawPrediction },
     }));
-  };
+  }, []); // Empty dependency array since it only uses setResults which is stable
 
   const handleDownloadPdf = async () => {
     if (!user) {
@@ -102,7 +103,7 @@ const ReportGeneration = () => {
               className={`bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium
                 ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
+              {isDownloading ? 'Saving...' : 'Save Report'}
             </button>
           </div>
 

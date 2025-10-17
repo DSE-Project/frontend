@@ -32,7 +32,7 @@ function App() {
         <Route path="/simulation" element={<ProtectedRoute><CustomSimulation /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><ReportGeneration /></ProtectedRoute>} />
         <Route path="/sentiment-dashboard" element={<ProtectedRoute><SentimentDashboard /></ProtectedRoute>} />
-        <Route path="/model-explainability" element={<ModelExplainability />} />
+        <Route path="/model-explainability" element={<ProtectedRoute><ModelExplainability /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
         <Route path="/auth/login" element={user ? <Navigate to="/" replace /> : <AuthPage task="login" />} />
         <Route path="/auth/register" element={user ? <Navigate to="/" replace /> : <AuthPage task="register" />} />

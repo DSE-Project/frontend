@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 import ColumnChart from '../components/ChartComponents/ColumnChart';
 import LastTwoRowsCard from '../components/ChartComponents/Last_two_data';
@@ -14,13 +14,13 @@ const ReportPrint = () => {
 
   const randomImage = coverImages[Math.floor(Math.random() * coverImages.length)];
 
-  
-  const handleResult = (monthsAhead, probability, targetDate, rawPrediction) => {
+  // Memoize handleResult to prevent infinite loop
+  const handleResult = useCallback((monthsAhead, probability, targetDate, rawPrediction) => {
     setResults(prev => ({
       ...prev,
       [monthsAhead]: { probability, targetDate, raw: rawPrediction },
     }));
-  };
+  }, []); // Empty dependency array since it only uses setResults which is stable
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">

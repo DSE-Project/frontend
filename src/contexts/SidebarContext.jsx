@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 
 const SidebarContext = createContext();
 
@@ -13,15 +13,17 @@ export const useSidebar = () => {
 export const SidebarProvider = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  // Memoize the toggle function to prevent recreating it on every render
+  const toggleSidebar = useCallback(() => {
+    setIsCollapsed(prev => !prev);
+  }, []);
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     isCollapsed,
     setIsCollapsed,
     toggleSidebar
-  };
+  }), [isCollapsed, toggleSidebar]);
 
   return (
     <SidebarContext.Provider value={value}>
