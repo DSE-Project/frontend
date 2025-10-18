@@ -39,7 +39,8 @@ const ReportGeneration = () => {
 
     try {
       // 1️⃣ Generate PDF from backend
-      const reportUrl = encodeURIComponent("http://localhost:5173/reports-print");
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://recession-scope.vercel.app";
+      const reportUrl = encodeURIComponent(`${frontendUrl}/reports-print`);
       const response = await fetch(
         `${API_URL}/generate-report?url=${reportUrl}&filename=recession_report.pdf`
       );
