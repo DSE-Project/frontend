@@ -30,16 +30,26 @@ const ReportGeneration = () => {
   }, []); // Empty dependency array since it only uses setResults which is stable
 
   const handleDownloadPdf = async () => {
+    console.log("🚀 Starting PDF download process...");
+    
     if (!user) {
+      console.log("❌ No user found - authentication required");
       alert("Please log in to download the report.");
       return;
     }
+    
+    console.log("✅ User authenticated:", {
+      userId: user.id,
+      userEmail: user.email,
+      userObject: user
+    });
 
+    console.log("🔄 Setting isDownloading to true...");
     setIsDownloading(true);
 
     try {
       // 1️⃣ Generate PDF from backend
-      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://recession-scope.vercel.app";
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL
       const reportUrl = encodeURIComponent(`${frontendUrl}/reports-print`);
       const response = await fetch(
         `${API_URL}/generate-report?url=${reportUrl}&filename=recession_report.pdf`
@@ -60,30 +70,60 @@ const ReportGeneration = () => {
       // 3️⃣ Upload directly using user.id (matches auth.uid())
       const file = new File([blob], fileName, { type: "application/pdf" });
       console.log("Created file object:", file);
-      const { data: uploadData, error: uploadError } = await supabase.storage.from("user-reports").upload(`${user.id}/${fileName}`, file, { upsert: false });
+      console.log("🔍 File details - Size:", file.size, "Type:", file.type, "Name:", file.name);
       
-
-
+      console.log("🔹 Starting Supabase upload...");
       console.log("🔹 user.id (auth.uid):", user.id);
       console.log("🔹 Upload path:", `${user.id}/${fileName}`);
+      console.log("🔹 Storage bucket: user-reports");
+      console.log("🔹 Upload options: { upsert: false }");
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("user-reports")
+        .upload(`${user.id}/${fileName}`, file, { upsert: false });
 
-      if (uploadError) throw uploadError;
+      console.log("� Upload completed - checking results...");
+      console.log("� Upload data:", uploadData);
+      console.log("🔍 Upload error:", uploadError);
 
-    console.log("✅ Uploaded to Supabase:", uploadData);
-    toast.success("Report uploaded successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-  } catch (err) {
-    console.error("❌ Upload failed:", err);
-    toast.error(`Upload failed: ${err.message}`, {
-      position: "top-right",
-      autoClose: 3000,
-    });
-  } finally {
-    setIsDownloading(false);
-  }
-};
+      if (uploadError) {
+        console.error("❌ Upload error detected:", uploadError);
+        console.error("❌ Error message:", uploadError.message);
+        console.error("❌ Error details:", JSON.stringify(uploadError, null, 2));
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      console.log("✅ Upload successful!");
+      console.log("✅ Uploaded to Supabase:", uploadData);
+      
+      // Show success message
+      console.log("🎉 Displaying success toast...");
+      toast.success("Report uploaded successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      console.log("🎉 Success toast displayed successfully");
+      
+    } catch (err) {
+      console.error("❌ Error caught in try-catch block:");
+      console.error("❌ Error type:", typeof err);
+      console.error("❌ Error constructor:", err.constructor.name);
+      console.error("❌ Error message:", err.message);
+      console.error("❌ Full error object:", err);
+      console.error("❌ Error stack:", err.stack);
+      
+      toast.error(`Upload failed: ${err.message}`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      console.log("💥 Error toast displayed");
+    } finally {
+      console.log("🔄 Finally block executing - resetting isDownloading state");
+      // Ensure state is always reset, regardless of success or failure
+      setIsDownloading(false);
+      console.log("🔄 isDownloading state reset to false");
+    }
+  };
 
   
   return (

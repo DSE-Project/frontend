@@ -1,5 +1,5 @@
 import React from 'react';
-// import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
