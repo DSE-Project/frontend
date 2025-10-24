@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+
+import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
+
 
 const SidebarContext = createContext();
 
@@ -49,7 +51,8 @@ export const SidebarProvider = ({ children }) => {
     }
   };
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     isCollapsed,
     setIsCollapsed,
     toggleSidebar,

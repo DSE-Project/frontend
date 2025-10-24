@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
 import SideBar from '../components/SideBar';
@@ -30,7 +30,7 @@ const ModelExplainability = () => {
         )}
         <div className="mb-6">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">
-            📊 Model Explainability (SHAP & Permutation Importance)
+            Model Explainability (SHAP & Permutation Importance)
           </h2>
           <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
             Understand which economic indicators are driving the recession predictions using SHAP values and permutation feature importance analysis.

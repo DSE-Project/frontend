@@ -132,11 +132,19 @@ const ModelExplanation = ({ monthsAhead }) => {
     return colors[index % colors.length];
   };
 
+  const getMonthText = (monthsAhead) => {
+    if (monthsAhead === '1m') return '1 Month'
+    else if (monthsAhead === '3m') return '3 Months'
+    else if (monthsAhead === '6m') return '6 Months'
+    else return monthsAhead;
+  }
+
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          Model Explanation - {monthsAhead === '1' ? '1 Month' : monthsAhead === '3' ? '3 Months' : '6 Months'}
+          Model Explanation - <span>{getMonthText(monthsAhead)}</span> ahead
         </h3>
         <p className="text-sm text-gray-600">
           Understanding what drives the recession probability prediction

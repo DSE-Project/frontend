@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
@@ -8,7 +8,11 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const getTargetDate = () => {
+  // Memoize the API endpoint
+  const apiEndpoint = useMemo(() => `${API_URL}/forecast/predict/${monthsAhead}m`, [monthsAhead]);
+
+  // Memoize target date calculation
+  const getTargetDate = useMemo(() => {
     if (!prediction || !prediction.input_date) {
       return ''; // Return blank if no prediction data or input_date
     }
@@ -21,13 +25,14 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
       "July", "August", "September", "October", "November", "December"];
     
     return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
-  };
+  }, [prediction, monthsAhead]);
 
-  const fetchPrediction1m = async () => {
+  // Consolidate fetch functions into one with memoization
+  const fetchPrediction = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_URL}/forecast/predict/1m`, {
+      const response = await fetch(apiEndpoint, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -46,79 +51,22 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiEndpoint]);
 
-  const fetchPrediction3m = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await fetch(`${API_URL}/forecast/predict/3m`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setPrediction(data);
-    } catch (err) {
-      setError('Failed to fetch prediction. Please try again.');
-      console.error('Error fetching prediction:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPrediction6m = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await fetch(`${API_URL}/forecast/predict/6m`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setPrediction(data);
-    } catch (err) {
-      setError('Failed to fetch prediction. Please try again.');
-      console.error('Error fetching prediction:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch prediction on mount or when monthsAhead changes
   useEffect(() => {
-    switch (monthsAhead) {
-      case '1':
-        fetchPrediction1m();
-        break;
-      case '3':
-        fetchPrediction3m();
-        break;
-      case '6':
-        fetchPrediction6m();
-        break;
-      default:
-        setError('Invalid months ahead value');
-    }
+    fetchPrediction();
+  }, [fetchPrediction]);
+
+  // Memoize month text
+  const monthText = useMemo(() => {
+    return monthsAhead === '1' ? 'month' : 'months';
   }, [monthsAhead]);
 
-  const getMonthText = () => {
-    return monthsAhead === '1' ? 'month' : 'months';
-  };
-
-  const getPrediction = () => {
+  // Memoize prediction value
+  const predictionValue = useMemo(() => {
+    if (!prediction) return null;
+    
     switch (monthsAhead) {
       case '1':
         return (prediction.prob_1m * 100).toFixed(2);
@@ -129,21 +77,22 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
       default:
         return null;
     }
-  }
+  }, [prediction, monthsAhead]);
 
+  // Handle onResult callback - only call once when prediction is first loaded
   useEffect(() => {
-    if (prediction && !loading) {
-      if (typeof onResult === "function") {
-        onResult(monthsAhead, getPrediction(), getTargetDate(), prediction);
-      }
+    if (prediction && !loading && predictionValue && onResult) {
+      onResult(monthsAhead, predictionValue, getTargetDate, prediction);
     }
-  }, [prediction, loading]);
+    // Only run when prediction changes (when data is first loaded)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prediction]);
 
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
-        Recession Probability in {monthsAhead} {getMonthText()}{getTargetDate() ? `: ${getTargetDate()}` : ''}
+        Recession Probability in {monthsAhead} {monthText}{getTargetDate ? `: ${getTargetDate}` : ''}
       </h3>
       
       {loading && (
@@ -163,7 +112,7 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
         <div className="space-y-4">
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-600 mb-2">
-              {getPrediction()}%
+              {predictionValue}%
             </div>
             <div className="text-sm text-gray-500">Recession Probability</div>
           </div>
@@ -189,5 +138,9 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
   );
 };
 
-
-export default ModelPrediction;
+// Use React.memo with custom comparison function
+export default React.memo(ModelPrediction, (prevProps, nextProps) => {
+  // Only re-render if monthsAhead or onResult changes
+  return prevProps.monthsAhead === nextProps.monthsAhead && 
+         prevProps.onResult === nextProps.onResult;
+});

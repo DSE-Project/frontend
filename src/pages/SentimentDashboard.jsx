@@ -16,6 +16,8 @@ import {
   Legend,
 } from "recharts";
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const COLORS = ["#4CAF50", "#FFC107", "#F44336"]; // Positive, Neutral, Negative
 
 const SentimentDashboard = () => {
@@ -41,7 +43,7 @@ const SentimentDashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://127.0.0.1:8000/api/v1/sentiment/reddit-sentiment");
+        const response = await fetch(`${API_URL}/sentiment/reddit-sentiment`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const responseData = await response.json();
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import Header from '../components/Header';
@@ -10,9 +10,29 @@ import ModelPrediction from '../components/DashBoardComponents/ModelPrediction';
 import MacroIndicatorsSnapshot from '../components/DashBoardComponents/MacroIndicatorsSnapshot';
 import EconomicIndicatorsMixed from '../components/EconomicIndicators/EconomicIndicatorsMixed';
 
+// Memoized components to prevent unnecessary re-renders
+const MemoizedModelPrediction = React.memo(ModelPrediction);
+const MemoizedMacroIndicatorsSnapshot = React.memo(MacroIndicatorsSnapshot);
+const MemoizedEconomicIndicatorsMixed = React.memo(EconomicIndicatorsMixed);
+
 const Dashboard = () => {
   const { getWelcomeMessage, isLoadingUserData, initializing } = useAuth();
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
+
+  // Memoize the welcome message to prevent recalculation
+  const welcomeMessage = useMemo(() => getWelcomeMessage(), [getWelcomeMessage]);
+  
+  // Memoize loading state
+  const isLoading = useMemo(() => 
+    initializing || isLoadingUserData(), 
+    [initializing, isLoadingUserData]
+  );
+
+  // Memoize the main class name to prevent string recalculation
+  const mainClassName = useMemo(() => 
+    `transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`,
+    [isCollapsed]
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 pt-16">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
@@ -21,12 +21,13 @@ const ReportGeneration = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [results, setResults] = useState({});
 
-  const handleResult = (monthsAhead, probability, targetDate, rawPrediction) => {
+  // Memoize handleResult to prevent infinite loop
+  const handleResult = useCallback((monthsAhead, probability, targetDate, rawPrediction) => {
     setResults(prev => ({
       ...prev,
       [monthsAhead]: { probability, targetDate, raw: rawPrediction },
     }));
-  };
+  }, []); // Empty dependency array since it only uses setResults which is stable
 
   const handleDownloadPdf = async () => {
     if (!user) {
@@ -38,7 +39,8 @@ const ReportGeneration = () => {
 
     try {
       // 1️⃣ Generate PDF from backend
-      const reportUrl = encodeURIComponent("http://localhost:5173/reports-print");
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || "https://recession-scope.vercel.app";
+      const reportUrl = encodeURIComponent(`${frontendUrl}/reports-print`);
       const response = await fetch(
         `${API_URL}/generate-report?url=${reportUrl}&filename=recession_report.pdf`
       );
@@ -114,7 +116,7 @@ const ReportGeneration = () => {
               className={`bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm sm:text-base whitespace-nowrap
                 ${isDownloading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              {isDownloading ? 'Downloading...' : 'Download Report as PDF'}
+              {isDownloading ? 'Saving...' : 'Save Report'}
             </button>
           </div>
 
