@@ -40,28 +40,28 @@ const ModelExplainability = () => {
         {/* Compact Predictions Display */}
         <CompactPredictionsDisplay />
 
-        {/* Model Explanations Grid - Responsive layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 border-t-4 border-green-500">
-            <div className="flex items-center mb-3">
+        {/* Model Explanations Grid - Mobile-first responsive layout */}
+        <div className="space-y-6 xl:space-y-0 xl:grid xl:grid-cols-3 xl:gap-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 border-t-4 border-green-500">
+            <div className="flex items-center mb-4">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <h3 className="text-sm sm:text-md font-semibold text-gray-800">1-Month Explainability</h3>
+              <h3 className="text-lg font-semibold text-gray-800">1-Month Explainability</h3>
             </div>
             <ModelExplanation monthsAhead="1m" />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 border-t-4 border-yellow-500">
-            <div className="flex items-center mb-3">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 border-t-4 border-yellow-500">
+            <div className="flex items-center mb-4">
               <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-              <h3 className="text-sm sm:text-md font-semibold text-gray-800">3-Month Explainability</h3>
+              <h3 className="text-lg font-semibold text-gray-800">3-Month Explainability</h3>
             </div>
             <ModelExplanation monthsAhead="3m" />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 border-t-4 border-red-500">
-            <div className="flex items-center mb-3">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 border-t-4 border-red-500">
+            <div className="flex items-center mb-4">
               <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <h3 className="text-md font-semibold text-gray-800">6-Month Explainability</h3>
+              <h3 className="text-lg font-semibold text-gray-800">6-Month Explainability</h3>
             </div>
             <ModelExplanation monthsAhead="6m" />
           </div>
