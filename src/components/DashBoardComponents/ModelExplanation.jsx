@@ -7,7 +7,7 @@ const ModelExplanation = ({ monthsAhead }) => {
   const [explanation, setExplanation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('shap'); // 'shap' or 'permutation'
+  const [activeTab, setActiveTab] = useState('shap'); // 'shap' or 'eli5'
 
   useEffect(() => {
     fetchExplanation();
@@ -83,10 +83,10 @@ const ModelExplanation = ({ monthsAhead }) => {
     return shapData.sort((a, b) => Math.abs(b.importance) - Math.abs(a.importance));
   };
 
-  const getPermutationChartData = () => {
-    if (!explanation?.permutation_importance?.feature_importance) return [];
+  const getELI5ChartData = () => {
+    if (!explanation?.eli5_explanation?.feature_importance) return [];
     
-    return explanation.permutation_importance.feature_importance.map(item => ({
+    return explanation.eli5_explanation.feature_importance.map(item => ({
       name: getFeatureName(item.feature),
       importance: item.importance,
       fullName: item.feature
@@ -132,19 +132,11 @@ const ModelExplanation = ({ monthsAhead }) => {
     return colors[index % colors.length];
   };
 
-  const getMonthText = (monthsAhead) => {
-    if (monthsAhead === '1m') return '1 Month'
-    else if (monthsAhead === '3m') return '3 Months'
-    else if (monthsAhead === '6m') return '6 Months'
-    else return monthsAhead;
-  }
-
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">
-          Model Explanation - <span>{getMonthText(monthsAhead)}</span> ahead
+          Model Explanation - {monthsAhead === '1' ? '1 Month' : monthsAhead === '3' ? '3 Months' : '6 Months'}
         </h3>
         <p className="text-sm text-gray-600">
           Understanding what drives the recession probability prediction
@@ -164,14 +156,14 @@ const ModelExplanation = ({ monthsAhead }) => {
           SHAP Values
         </button>
         <button
-          onClick={() => setActiveTab('permutation')}
+          onClick={() => setActiveTab('eli5')}
           className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === 'permutation'
+            activeTab === 'eli5'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Permutation Importance
+          Feature Importance
         </button>
       </div>
 
@@ -232,8 +224,8 @@ const ModelExplanation = ({ monthsAhead }) => {
             </div>
           )}
 
-          {/* Permutation Importance Tab */}
-          {activeTab === 'permutation' && (
+          {/* ELI5 Tab */}
+          {activeTab === 'eli5' && (
             <div>
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-gray-700 mb-1">Permutation Feature Importance</h4>
@@ -242,7 +234,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                 </p>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={getPermutationChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <BarChart data={getELI5ChartData()} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     type="number" 
@@ -261,7 +253,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                     radius={[0, 4, 4, 0]}
                     minPointSize={2}
                   >
-                    {getPermutationChartData().map((entry, index) => (
+                    {getELI5ChartData().map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={getBarColor(index)} />
                     ))}
                   </Bar>
@@ -272,7 +264,7 @@ const ModelExplanation = ({ monthsAhead }) => {
               <div className="mt-4 bg-gray-50 p-4 rounded-lg">
                 <h5 className="text-sm font-semibold text-gray-700 mb-2">Top 3 Drivers</h5>
                 <div className="space-y-2">
-                  {getPermutationChartData().slice(0, 3).map((item, idx) => (
+                  {getELI5ChartData().slice(0, 3).map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <span className="text-sm text-gray-700 flex items-center">
                         <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center mr-2">
@@ -299,7 +291,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                 Total Features Analyzed: {
                   activeTab === 'shap' 
                     ? explanation.shap_explanation?.feature_count 
-                    : explanation.permutation_importance?.total_features
+                    : explanation.eli5_explanation?.total_features
                 }
               </p>
             </div>
