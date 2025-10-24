@@ -161,18 +161,65 @@ const UserProfile = () => {
     }
 
     try {
-      const { error } = await supabase.storage
+      // First, check if the file exists
+      const { data: existingFiles, error: listError } = await supabase.storage
+        .from('user-reports')
+        .list(user.id + "/", { limit: 100 });
+
+      if (listError) {
+        throw listError;
+      }
+      
+      const fileExists = existingFiles.some(file => file.name === fileName);
+
+      if (!fileExists) {
+        setSavedReports(prev => prev.filter(file => file.name !== fileName));
+        setMessage({ type: 'success', text: 'File removed from list (was already deleted from storage).' });
+        return;
+      }
+      
+      // Proceed with deletion
+      const { data, error } = await supabase.storage
         .from('user-reports')
         .remove([`${user.id}/${fileName}`]);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      // Remove the file from the local state
+      // Check if the deletion was successful
+      if (!data || data.length === 0) {
+        // Verify if file was actually deleted by listing again
+        const { data: verifyFiles, error: verifyError } = await supabase.storage
+          .from('user-reports')
+          .list(user.id + "/", { limit: 100 });
+
+        if (!verifyError) {
+          const stillExists = verifyFiles.some(file => file.name === fileName);
+          
+          if (!stillExists) {
+            // File was actually deleted despite empty response
+            setSavedReports(prev => prev.filter(file => file.name !== fileName));
+            setMessage({ type: 'success', text: 'File deleted successfully!' });
+            return;
+          }
+        }
+        
+        // File still exists - RLS policy or permission issue
+        setMessage({ 
+          type: 'error', 
+          text: 'Unable to delete file. This may be due to storage permissions. Please contact support.' 
+        });
+        return;
+      }
+
+      // Normal success case (non-empty response)
       setSavedReports(prev => prev.filter(file => file.name !== fileName));
       setMessage({ type: 'success', text: 'File deleted successfully!' });
+      
     } catch (error) {
       console.error('Error deleting file:', error);
-      setMessage({ type: 'error', text: 'Failed to delete file. Please try again.' });
+      setMessage({ type: 'error', text: `Failed to delete file: ${error.message}` });
     }
   };
 
