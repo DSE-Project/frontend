@@ -65,8 +65,8 @@ const Header = () => {
             alt="RecessionScope Logo" 
             className="h-6 w-6 sm:h-8 sm:w-8"
           />
-          <span className="hidden xs:block">RecessionScope</span>
-          <span className="block xs:hidden">RS</span>
+          <span className="block xs:hidden">RecessionScope</span>
+          {/* <span className="block xs:hidden">RS</span> */}
         </Link>
         
         {/* Desktop Navigation */}
