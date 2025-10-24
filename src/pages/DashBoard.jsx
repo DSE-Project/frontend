@@ -63,9 +63,9 @@ const Dashboard = () => {
           <div>
             <h2 data-cy="welcome-message" className="text-2xl sm:text-3xl font-bold text-gray-800">
               Welcome{getWelcomeMessage()}!
-              {(initializing || isLoadingUserData()) && (
+              {/* {(initializing || isLoadingUserData()) && (
                 <span className="text-sm text-gray-500 ml-2">Loading...</span>
-              )}
+              )} */}
             </h2>
             <p className="text-gray-500 text-sm sm:text-base">Here's your recession risk dashboard.</p>
           </div>

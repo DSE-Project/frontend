@@ -39,28 +39,52 @@ const Register = ({ toggleView }) => {
       }
 
       if (data.user) {
-        console.log('User created successfully:', data.user.id);
-        
         // Try to create profile after successful auth signup
         try {
-          const { error: profileError } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('user_profiles')
             .insert({
               id: data.user.id,
               first_name: firstName.trim(),
               last_name: lastName.trim(),
               email: email,
-            });
+            })
+            .select();
 
           if (profileError) {
-            console.warn('Profile creation failed but auth succeeded:', profileError);
-            setMessage('Registration successful! Profile will be created when you first log in.');
+            // Try alternative approach - set the session manually and retry
+            if (profileError.code === 'PGRST116' || profileError.message?.includes('JWT')) {
+              const { error: retryError } = await supabase.auth.setSession({
+                access_token: data.session?.access_token,
+                refresh_token: data.session?.refresh_token
+              });
+              
+              if (!retryError) {
+                const { data: retryData, error: retryProfileError } = await supabase
+                  .from('user_profiles')
+                  .insert({
+                    id: data.user.id,
+                    first_name: firstName.trim(),
+                    last_name: lastName.trim(),
+                    email: email,
+                  })
+                  .select();
+                  
+                if (retryProfileError) {
+                  setMessage('Registration successful! Profile will be created when you first log in.');
+                } else {
+                  setMessage('Registration successful! Please check your email to confirm your account.');
+                }
+              } else {
+                setMessage('Registration successful! Profile will be created when you first log in.');
+              }
+            } else {
+              setMessage('Registration successful! Profile will be created when you first log in.');
+            }
           } else {
-            console.log('Profile created successfully');
             setMessage('Registration successful! Please check your email to confirm your account.');
           }
         } catch (profileErr) {
-          console.warn('Profile creation error but auth succeeded:', profileErr);
           setMessage('Registration successful! Profile will be created when you first log in.');
         }
       }
