@@ -59,7 +59,7 @@ export const SidebarProvider = ({ children }) => {
     isMobile,
     isMobileMenuOpen,
     closeMobileSidebar
-  };
+  }), [isCollapsed, isMobile, isMobileMenuOpen]);
 
   return (
     <SidebarContext.Provider value={value}>

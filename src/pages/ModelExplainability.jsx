@@ -7,7 +7,6 @@ import ModelExplanation from '../components/DashBoardComponents/ModelExplanation
 import CompactPredictionsDisplay from '../components/DashBoardComponents/CompactPredictionsDisplay';
 
 const ModelExplainability = () => {
-  const { getWelcomeMessage, isLoadingUserData, initializing } = useAuth();
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
   return (
