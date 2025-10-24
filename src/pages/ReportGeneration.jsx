@@ -30,21 +30,16 @@ const ReportGeneration = () => {
   }, []); // Empty dependency array since it only uses setResults which is stable
 
   const handleDownloadPdf = async () => {
-    console.log("🚀 Starting PDF download process...");
-    
     if (!user) {
-      console.log("❌ No user found - authentication required");
       alert("Please log in to download the report.");
       return;
     }
     
-    console.log("✅ User authenticated:", {
-      userId: user.id,
-      userEmail: user.email,
-      userObject: user
-    });
+    // Prevent multiple simultaneous downloads
+    if (isDownloading) {
+      return;
+    }
 
-    console.log("🔄 Setting isDownloading to true...");
     setIsDownloading(true);
 
     try {
@@ -54,74 +49,79 @@ const ReportGeneration = () => {
       const response = await fetch(
         `${API_URL}/generate-report?url=${reportUrl}&filename=recession_report.pdf`
       );
-      console.log("Completed Generating PDF from backend")
 
       if (!response.ok) throw new Error("Failed to generate PDF");
 
       const blob = await response.blob();
-      console.log("Completed blob from response")
 
-      // 2️⃣ Generate timestamped filename
+      // 2️⃣ Generate timestamped filename with microseconds for uniqueness
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      console.log("Generated timestamp:", timestamp);
-      const fileName = `recession_report_${timestamp}.pdf`;
-      console.log("Generated filename:", fileName);
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const fileName = `recession_report_${timestamp}_${randomSuffix}.pdf`;
 
       // 3️⃣ Upload directly using user.id (matches auth.uid())
       const file = new File([blob], fileName, { type: "application/pdf" });
-      console.log("Created file object:", file);
-      console.log("🔍 File details - Size:", file.size, "Type:", file.type, "Name:", file.name);
       
-      console.log("🔹 Starting Supabase upload...");
-      console.log("🔹 user.id (auth.uid):", user.id);
-      console.log("🔹 Upload path:", `${user.id}/${fileName}`);
-      console.log("🔹 Storage bucket: user-reports");
-      console.log("🔹 Upload options: { upsert: false }");
+      // Add a timeout wrapper for the upload with retry logic
+      const uploadWithTimeoutAndRetry = async (maxRetries = 3) => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            // Try with upsert: false first, then upsert: true on last attempt
+            const upsertOption = attempt === maxRetries ? true : false;
+            
+            const uploadPromise = supabase.storage
+              .from("user-reports")
+              .upload(`${user.id}/${fileName}`, file, { upsert: upsertOption });
+            
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error(`Upload timeout after 30 seconds (attempt ${attempt})`)), 30000)
+            );
+            
+            const result = await Promise.race([uploadPromise, timeoutPromise]);
+            return result;
+            
+          } catch (error) {
+            if (attempt === maxRetries) {
+              throw error; // Last attempt failed, throw the error
+            }
+            
+            // Wait before retrying (exponential backoff)
+            const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+        }
+      };
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("user-reports")
-        .upload(`${user.id}/${fileName}`, file, { upsert: false });
+      const { data: uploadData, error: uploadError } = await uploadWithTimeoutAndRetry();
 
       console.log("� Upload completed - checking results...");
       console.log("� Upload data:", uploadData);
       console.log("🔍 Upload error:", uploadError);
 
       if (uploadError) {
-        console.error("❌ Upload error detected:", uploadError);
-        console.error("❌ Error message:", uploadError.message);
-        console.error("❌ Error details:", JSON.stringify(uploadError, null, 2));
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
-
-      console.log("✅ Upload successful!");
-      console.log("✅ Uploaded to Supabase:", uploadData);
       
       // Show success message
-      console.log("🎉 Displaying success toast...");
       toast.success("Report uploaded successfully!", {
         position: "top-right",
         autoClose: 3000,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
-      console.log("🎉 Success toast displayed successfully");
       
     } catch (err) {
-      console.error("❌ Error caught in try-catch block:");
-      console.error("❌ Error type:", typeof err);
-      console.error("❌ Error constructor:", err.constructor.name);
-      console.error("❌ Error message:", err.message);
-      console.error("❌ Full error object:", err);
-      console.error("❌ Error stack:", err.stack);
-      
       toast.error(`Upload failed: ${err.message}`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
-      console.log("💥 Error toast displayed");
     } finally {
-      console.log("🔄 Finally block executing - resetting isDownloading state");
       // Ensure state is always reset, regardless of success or failure
       setIsDownloading(false);
-      console.log("🔄 isDownloading state reset to false");
     }
   };
 
