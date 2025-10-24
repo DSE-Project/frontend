@@ -1,7 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../supabase/supabase';
+import { toast } from 'react-toastify';
 import Header from '../components/Header';
+
+// Custom CSS for wider confirmation toast
+const customToastStyles = `
+  .custom-toast-wide {
+    min-width: 400px;
+    max-width: 500px;
+  }
+  .custom-toast-wide .Toastify__toast-body {
+    padding: 0;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = customToastStyles;
+  document.head.appendChild(styleSheet);
+}
 
 const UserProfile = () => {
   const { user, userData, fetchUserData } = useAuth();
@@ -14,7 +33,60 @@ const UserProfile = () => {
   const [reportsLoaded, setReportsLoaded] = useState(false);
   const [lastFetchedUserId, setLastFetchedUserId] = useState(null);
   const [lastRefreshTime, setLastRefreshTime] = useState(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Custom confirmation toast
+  const showDeleteConfirmation = (itemName, onConfirm) => {
+    const confirmToast = () => {
+      toast.dismiss(); // Clear any existing toasts
+      toast(
+        ({ closeToast }) => (
+          <div className="p-2">
+            <div className="flex items-center mb-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">Delete Confirmation</h4>
+                <p className="text-sm text-gray-600">Are you sure you want to delete "{itemName}"?</p>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => {
+                  closeToast();
+                }}
+                className="px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  closeToast();
+                  onConfirm();
+                }}
+                className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ),
+        {
+          position: "top-center",
+          autoClose: false,
+          hideProgressBar: true,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: false,
+          closeButton: false,
+          className: "custom-toast-wide"
+        }
+      );
+    };
+    confirmToast();
+  };
 
   // Initialize form data when userData changes
   useEffect(() => {
@@ -66,7 +138,7 @@ const UserProfile = () => {
       setLastRefreshTime(new Date());
     } catch (err) {
       console.error("Error fetching reports from storage:", err);
-      setMessage({ type: "error", text: "Failed to load reports from storage." });
+      toast.error("Failed to load reports from storage.");
     } finally {
       setLoadingReports(false);
     }
@@ -86,7 +158,6 @@ const UserProfile = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
       // Check if profile exists
@@ -124,103 +195,100 @@ const UserProfile = () => {
       // Refresh user data
       await fetchUserData(user.id);
       setIsEditing(false);
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
-      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+      toast.error('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteReport = async (reportId) => {
-    if (!confirm('Are you sure you want to delete this report?')) {
-      return;
-    }
+    const executeDelete = async () => {
+      try {
+        const { error } = await supabase
+          .from('saved_reports')
+          .delete()
+          .eq('id', reportId)
+          .eq('user_id', user.id);
 
-    try {
-      const { error } = await supabase
-        .from('saved_reports')
-        .delete()
-        .eq('id', reportId)
-        .eq('user_id', user.id);
+        if (error) throw error;
 
-      if (error) throw error;
+        setSavedReports(prev => prev.filter(report => report.id !== reportId));
+        toast.success('Report deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting report:', error);
+        toast.error('Failed to delete report. Please try again.');
+      }
+    };
 
-      setSavedReports(prev => prev.filter(report => report.id !== reportId));
-      setMessage({ type: 'success', text: 'Report deleted successfully!' });
-    } catch (error) {
-      console.error('Error deleting report:', error);
-      setMessage({ type: 'error', text: 'Failed to delete report. Please try again.' });
-    }
+    showDeleteConfirmation(`Report ${reportId}`, executeDelete);
   };
 
   const handleDeleteFile = async (fileName) => {
-    if (!confirm('Are you sure you want to delete this file?')) {
-      return;
-    }
-
-    try {
-      // First, check if the file exists
-      const { data: existingFiles, error: listError } = await supabase.storage
-        .from('user-reports')
-        .list(user.id + "/", { limit: 100 });
-
-      if (listError) {
-        throw listError;
-      }
-      
-      const fileExists = existingFiles.some(file => file.name === fileName);
-
-      if (!fileExists) {
-        setSavedReports(prev => prev.filter(file => file.name !== fileName));
-        setMessage({ type: 'success', text: 'File removed from list (was already deleted from storage).' });
-        return;
-      }
-      
-      // Proceed with deletion
-      const { data, error } = await supabase.storage
-        .from('user-reports')
-        .remove([`${user.id}/${fileName}`]);
-
-      if (error) {
-        throw error;
-      }
-
-      // Check if the deletion was successful
-      if (!data || data.length === 0) {
-        // Verify if file was actually deleted by listing again
-        const { data: verifyFiles, error: verifyError } = await supabase.storage
+    const executeDelete = async () => {
+      try {
+        // First, check if the file exists
+        const { data: existingFiles, error: listError } = await supabase.storage
           .from('user-reports')
           .list(user.id + "/", { limit: 100 });
 
-        if (!verifyError) {
-          const stillExists = verifyFiles.some(file => file.name === fileName);
-          
-          if (!stillExists) {
-            // File was actually deleted despite empty response
-            setSavedReports(prev => prev.filter(file => file.name !== fileName));
-            setMessage({ type: 'success', text: 'File deleted successfully!' });
-            return;
-          }
+        if (listError) {
+          throw listError;
         }
         
-        // File still exists - RLS policy or permission issue
-        setMessage({ 
-          type: 'error', 
-          text: 'Unable to delete file. This may be due to storage permissions. Please contact support.' 
-        });
-        return;
-      }
+        const fileExists = existingFiles.some(file => file.name === fileName);
 
-      // Normal success case (non-empty response)
-      setSavedReports(prev => prev.filter(file => file.name !== fileName));
-      setMessage({ type: 'success', text: 'File deleted successfully!' });
-      
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      setMessage({ type: 'error', text: `Failed to delete file: ${error.message}` });
-    }
+        if (!fileExists) {
+          setSavedReports(prev => prev.filter(file => file.name !== fileName));
+          toast.success('File removed from list (was already deleted from storage).');
+          return;
+        }
+        
+        // Proceed with deletion
+        const { data, error } = await supabase.storage
+          .from('user-reports')
+          .remove([`${user.id}/${fileName}`]);
+
+        if (error) {
+          throw error;
+        }
+
+        // Check if the deletion was successful
+        if (!data || data.length === 0) {
+          // Verify if file was actually deleted by listing again
+          const { data: verifyFiles, error: verifyError } = await supabase.storage
+            .from('user-reports')
+            .list(user.id + "/", { limit: 100 });
+
+          if (!verifyError) {
+            const stillExists = verifyFiles.some(file => file.name === fileName);
+            
+            if (!stillExists) {
+              // File was actually deleted despite empty response
+              setSavedReports(prev => prev.filter(file => file.name !== fileName));
+              toast.success('File deleted successfully!');
+              return;
+            }
+          }
+          
+          // File still exists - RLS policy or permission issue
+          toast.error('Unable to delete file. This may be due to storage permissions. Please contact support.');
+          return;
+        }
+
+        // Normal success case (non-empty response)
+        setSavedReports(prev => prev.filter(file => file.name !== fileName));
+        toast.success('File deleted successfully!');
+        
+      } catch (error) {
+        console.error('Error deleting file:', error);
+        toast.error(`Failed to delete file: ${error.message}`);
+      }
+    };
+
+    showDeleteConfirmation(fileName, executeDelete);
   };
 
   const handleRefreshReports = async () => {
@@ -261,16 +329,7 @@ const UserProfile = () => {
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">User Profile</h1>
             
-            {/* Message Display */}
-            {message.text && (
-              <div className={`mb-4 p-4 rounded-md ${
-                message.type === 'success' 
-                  ? 'bg-green-50 border border-green-200 text-green-800' 
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}>
-                {message.text}
-              </div>
-            )}
+
 
             {/* Profile Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -347,7 +406,6 @@ const UserProfile = () => {
                           setIsEditing(false);
                           setFirstName(userData?.first_name || '');
                           setLastName(userData?.last_name || '');
-                          setMessage({ type: '', text: '' });
                         }}
                         className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
                       >
