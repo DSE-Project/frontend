@@ -35,7 +35,7 @@ const SentimentDashboard = () => {
   const [loading, setLoading] = useState(data ? false : true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
   useEffect(() => {
     if (data) return; // already have cached data
@@ -71,11 +71,24 @@ const SentimentDashboard = () => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+        <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+          isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-4">Loading sentiment analysis...</p>
+              <p className="text-gray-600 mt-4 text-sm sm:text-base">Loading sentiment analysis...</p>
             </div>
           </div>
         </main>

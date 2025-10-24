@@ -15,7 +15,7 @@ const CustomSimulation = memo(() => {
   const [featureDefinitions, setFeatureDefinitions] = useState({});
   const [definitionsLoading, setDefinitionsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
   const [simulationMode, setSimulationMode] = useState('simple'); // 'simple' or 'advanced'
 
   // State for form values
@@ -370,14 +370,27 @@ const CustomSimulation = memo(() => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
-          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+        <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+          isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 sm:p-8 text-center">
             <div className="mb-6">
               <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
             <p className="text-gray-600 mb-6">
               Please login to access the Custom Simulation tool and create your own economic scenarios.
             </p>
@@ -398,11 +411,24 @@ const CustomSimulation = memo(() => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
+        <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+          isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading feature definitions...</p>
+              <p className="text-gray-600 text-sm sm:text-base">Loading feature definitions...</p>
             </div>
           </div>
         </main>
@@ -415,14 +441,27 @@ const CustomSimulation = memo(() => {
       <div className="min-h-screen bg-gray-100 pt-16">
         <Header />
         <SideBar />
-        <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
-          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+        <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+          isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 sm:p-8 text-center">
             <div className="mb-6">
               <svg className="mx-auto h-16 w-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Error Loading Features</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Error Loading Features</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <button 
               onClick={() => window.location.reload()}
@@ -440,18 +479,31 @@ const CustomSimulation = memo(() => {
     <div className="min-h-screen bg-gray-100 pt-16">
       <Header />
       <SideBar />
-      <main className={`transition-all duration-800 p-4 sm:p-6 lg:p-8 ${isCollapsed ? 'ml-16' : 'ml-64'}`}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <div className="mb-4 sm:mb-0">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Custom Simulation Tool</h1>
-            <p className="text-gray-600">
+      <main className={`transition-all duration-300 p-4 sm:p-6 lg:p-8 ${
+        isMobile ? 'ml-0' : isCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
+        {isMobile && (
+          <button
+            onClick={toggleSidebar}
+            className="mb-4 md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8">
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Custom Simulation Tool</h1>
+            <p className="text-gray-600 text-sm sm:text-base">
               Adjust economic indicators to simulate different scenarios and analyze their impact on recession probability.
             </p>
           </div>
           
           {/* Simulation Mode Toggle */}
-          <div className="flex items-center space-x-4 bg-white rounded-lg shadow-sm p-2 border border-gray-200">
-            <span className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 bg-white rounded-lg shadow-sm p-2 border border-gray-200">
+            <span className={`text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-md transition-colors ${
               simulationMode === 'simple' 
                 ? 'bg-blue-100 text-blue-700' 
                 : 'text-gray-500'

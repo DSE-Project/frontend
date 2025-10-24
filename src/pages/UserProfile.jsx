@@ -196,9 +196,9 @@ const UserProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="pt-20 flex items-center justify-center">
+        <div className="pt-20 flex items-center justify-center px-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to view your profile</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Please log in to view your profile</h2>
           </div>
         </div>
       </div>
@@ -211,8 +211,8 @@ const UserProfile = () => {
       <div className="pt-20 pb-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Profile Header */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">User Profile</h1>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">User Profile</h1>
             
             {/* Message Display */}
             {message.text && (
