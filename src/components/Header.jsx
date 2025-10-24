@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import logoImage from '/logo.png';
 
 const Header = () => {
   const { user, getDisplayName, isAuthenticated, signOut } = useAuth();
@@ -55,7 +56,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2 text-xl font-bold hover:text-blue-200">
           <img 
-            src="/logo.png" 
+            src={logoImage} 
             alt="RecessionScope Logo" 
             className="h-8 w-8"
           />
