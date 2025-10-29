@@ -155,7 +155,7 @@ const ModelExplanation = ({ monthsAhead }) => {
         >
           SHAP Values
         </button>
-        <button
+        {/* <button
           onClick={() => setActiveTab('eli5')}
           className={`px-4 py-2 font-medium text-sm transition-colors ${
             activeTab === 'eli5'
@@ -164,7 +164,7 @@ const ModelExplanation = ({ monthsAhead }) => {
           }`}
         >
           Feature Importance
-        </button>
+        </button> */}
       </div>
 
       {loading && (
@@ -225,7 +225,7 @@ const ModelExplanation = ({ monthsAhead }) => {
           )}
 
           {/* ELI5 Tab */}
-          {activeTab === 'eli5' && (
+          {/* {activeTab === 'eli5' && (
             <div>
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-gray-700 mb-1">Permutation Feature Importance</h4>
@@ -260,7 +260,6 @@ const ModelExplanation = ({ monthsAhead }) => {
                 </BarChart>
               </ResponsiveContainer>
 
-              {/* Top 3 Features List */}
               <div className="mt-4 bg-gray-50 p-4 rounded-lg">
                 <h5 className="text-sm font-semibold text-gray-700 mb-2">Top 3 Drivers</h5>
                 <div className="space-y-2">
@@ -280,7 +279,7 @@ const ModelExplanation = ({ monthsAhead }) => {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Metadata */}
           <div className="mt-4 pt-4 border-t border-gray-200">
@@ -288,11 +287,10 @@ const ModelExplanation = ({ monthsAhead }) => {
               <p>Model: {explanation.model_version}</p>
               <p>Method: {explanation.explanation_method}</p>
               <p>
-                Total Features Analyzed: {
-                  activeTab === 'shap' 
+                Total Features Analyzed: {explanation.shap_explanation?.feature_count}
+                {/* activeTab === 'shap' 
                     ? explanation.shap_explanation?.feature_count 
-                    : explanation.eli5_explanation?.total_features
-                }
+                    : explanation.eli5_explanation?.total_features */}
               </p>
             </div>
           </div>
