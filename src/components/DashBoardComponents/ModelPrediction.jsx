@@ -19,7 +19,7 @@ const ModelPrediction = ({ monthsAhead, onResult }) => {
     
     const currentDate = new Date(prediction.input_date);
     const targetDate = new Date(currentDate);
-    targetDate.setMonth(currentDate.getMonth() + parseInt(monthsAhead) + 1);
+    targetDate.setMonth(currentDate.getMonth() + parseInt(monthsAhead));
     
     const monthNames = ["January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"];
